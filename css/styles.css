@@ -666,18 +666,68 @@ a:hover {
     }
     
     .modal-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-lg);
     }
     
+    /* MEJORADO: Modal variants en móvil */
     .modal-variant {
-        grid-template-columns: 80px 1fr auto;
+        grid-template-columns: 1fr;
         gap: var(--spacing-md);
         padding: var(--spacing-md);
     }
     
     .modal-comodin {
-        width: 80px;
-        height: 80px;
+        width: 100%;
+        max-width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .modal-variant-info {
+        text-align: center;
+    }
+    
+    .modal-collection {
+        font-size: 1rem;
+    }
+    
+    .modal-price-qty {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+    
+    .modal-price {
+        font-size: 1.2rem;
+    }
+    
+    .modal-qty {
+        gap: var(--spacing-md);
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .qty-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.2rem;
+    }
+    
+    .qty-display {
+        min-width: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .modal-actions {
+        margin-top: var(--spacing-lg);
+    }
+    
+    .btn-add-to-cart {
+        padding: 1rem;
+        font-size: 1.1rem;
     }
     
     .close-btn {
