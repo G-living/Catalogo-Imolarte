@@ -454,25 +454,7 @@ function showTermsAndConditions() {
                     y se informan antes de confirmar la compra.
                 </p>
                 
-                <h2>4. Formas de Pago</h2>
-                <p>
-                    Aceptamos los siguientes métodos de pago:
-                </p>
-                <ul>
-                    <li>Tarjetas de crédito y débito (a través de Wompi)</li>
-                    <li>PSE (Pagos Seguros en Línea)</li>
-                    <li>Nequi</li>
-                    <li>Transferencia bancaria (previa coordinación)</li>
-                </ul>
-                <p>
-                    <strong>Anticipo del 60%:</strong> Al momento de realizar el pedido, se cobrará 
-                    el 60% del valor total del mismo. Tratándose de mercancía producida por Imolarte 
-                    en Italia y sobre pedido, no será posible desistir del mismo y será obligatorio 
-                    terminar de cancelar el 40% faltante tan pronto el pedido se encuentre disponible 
-                    en el almacén.
-                </p>
-                
-                <h2>5. Entregas</h2>
+                <h2>4. Entregas</h2>
                 <p>
                     Ofrecemos dos modalidades de entrega:
                 </p>
@@ -490,6 +472,24 @@ function showTermsAndConditions() {
                     confirmación del pedido y el cobro efectivo del anticipo del 60%. Haremos todo 
                     lo objetivamente posible para reducir estos tiempos cuando las condiciones lo 
                     permitan.
+                </p>
+                
+                <h2>5. Forma de Pago</h2>
+                <p>
+                    Aceptamos las siguientes formas de pago:
+                </p>
+                <ul>
+                    <li><strong>Pago anticipado del 60%:</strong> Como anticipo para confirmar el pedido</li>
+                    <li><strong>Pago anticipado del 100%:</strong> Con descuento del 3% sobre el valor total</li>
+                    <li><strong>Pago coordinado:</strong> Envía tu solicitud por WhatsApp y coordinamos 
+                    la forma de pago que mejor se ajuste a tus necesidades</li>
+                </ul>
+                <p>
+                    <strong>Costos de transporte:</strong> Los costos de transporte hasta el domicilio de 
+                    entrega acordado se cobran por adelantado e incluyen seguro de la mercancía. Nos apoyamos 
+                    en empresas especializadas en el manejo de objetos de valor. Una vez confirmado el pago 
+                    efectivo del transporte, se informarán los tiempos estimados de entrega y la guía de 
+                    seguimiento del envío.
                 </p>
                 
                 <h2>6. Política de Devoluciones</h2>
@@ -522,7 +522,7 @@ function showTermsAndConditions() {
                     <li>Exposición a temperaturas extremas no recomendadas</li>
                 </ul>
                 
-                <h2>8. Cuidado de los Productos</h2>
+                <h2>7. Cuidado de los Productos</h2>
                 <p>
                     Las cerámicas artesanales requieren cuidados especiales:
                 </p>
@@ -533,7 +533,7 @@ function showTermsAndConditions() {
                     <li>Secar completamente después del lavado</li>
                 </ul>
                 
-                <h2>9. Privacidad y Protección de Datos</h2>
+                <h2>8. Privacidad y Protección de Datos</h2>
                 <p>
                     El tratamiento de datos personales se realizará conforme a la normatividad 
                     colombiana vigente: Ley Estatutaria 1581 de 2012, Decreto 1377 de 2013, 
@@ -555,7 +555,7 @@ function showTermsAndConditions() {
                     de mensajería).
                 </p>
                 
-                <h2>10. Veracidad de Datos</h2>
+                <h2>9. Veracidad de Datos</h2>
                 <p>
                     El Cliente declara y garantiza que toda la información proporcionada durante 
                     el proceso de registro, compra o cualquier interacción con el sitio web o la 
@@ -574,7 +574,7 @@ function showTermsAndConditions() {
                     conforme a la Política de Tratamiento de Datos Personales publicada en el sitio.
                 </p>
                 
-                <h2>11. Contacto</h2>
+                <h2>10. Contacto</h2>
                 <p>
                     Para consultas, reclamos o sugerencias, puede contactarnos a través de:
                 </p>
