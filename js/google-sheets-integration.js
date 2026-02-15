@@ -11,6 +11,24 @@ const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwqDLCWDljl--
 const PORCENTAJE_ANTICIPO = 60;
 const DESCUENTO_PAGO_COMPLETO = 3; // 3%
 
+// ===== GENERADOR DE ID TEMPORAL =====
+
+/**
+ * Genera un ID temporal de pedido en formato IMO-YYYYMMDD-HHmmss
+ * Nota: El ID real se genera en Google Sheets, este es solo para referencia
+ */
+function generarIdPedidoTemporal() {
+    const ahora = new Date();
+    const año = ahora.getFullYear();
+    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dia = String(ahora.getDate()).padStart(2, '0');
+    const hora = String(ahora.getHours()).padStart(2, '0');
+    const min = String(ahora.getMinutes()).padStart(2, '0');
+    const seg = String(ahora.getSeconds()).padStart(2, '0');
+    
+    return `IMO-${año}${mes}${dia}-${hora}${min}${seg}`;
+}
+
 // ===== FUNCIONES AUXILIARES =====
 
 /**
@@ -39,7 +57,7 @@ function calcularTotalConDescuento(total) {
 /**
  * Envía el pedido a Google Sheets
  * @param {Object} datosPedido - Datos completos del pedido
- * @returns {Promise} - Respuesta del servidor
+ * @returns {Promise} - Respuesta del servidor con pedidoId
  */
 async function enviarPedidoASheets(datosPedido) {
     try {
@@ -48,31 +66,36 @@ async function enviarPedidoASheets(datosPedido) {
         
         const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            mode: 'no-cors', // Importante para Google Apps Script
+            mode: 'cors', // Cambiado de 'no-cors' a 'cors'
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(datosPedido)
         });
         
-        console.log('✅ Pedido enviado a Google Sheets');
+        // Ahora SÍ podemos leer la respuesta
+        const resultado = await response.json();
         
-        // Como usamos no-cors, no podemos leer la respuesta
-        // Pero si llegó aquí sin error, asumimos que funcionó
-        return {
-            success: true,
-            mensaje: 'Pedido registrado en sistema'
-        };
+        console.log('✅ Respuesta de Google Sheets:', resultado);
+        
+        if (resultado.success) {
+            return {
+                success: true,
+                pedidoId: resultado.pedidoId,
+                clienteId: resultado.clienteId,
+                mensaje: resultado.mensaje || 'Pedido registrado en sistema'
+            };
+        } else {
+            throw new Error(resultado.error || 'Error al registrar pedido');
+        }
         
     } catch (error) {
         console.error('❌ Error al enviar a Google Sheets:', error);
         
-        // Aunque haya error de CORS, el pedido puede haberse guardado
-        // Retornamos success de todos modos
         return {
-            success: true,
-            mensaje: 'Pedido enviado (verificar en Sheets)',
-            error: error.message
+            success: false,
+            error: error.message,
+            mensaje: 'Error al registrar pedido'
         };
     }
 }
@@ -185,14 +208,15 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
         // Enviar a Google Sheets
         const resultado = await enviarPedidoASheets(datosPedido);
         
-        if (resultado.success) {
+        if (resultado.success && resultado.pedidoId) {
             console.log('✅ Pedido registrado en Google Sheets');
+            console.log('🆔 ID Pedido:', resultado.pedidoId);
             
-            // Enviar a WhatsApp como antes
-            enviarWhatsAppOriginal(datosPedido);
+            // Enviar a WhatsApp con el ID REAL de Google Sheets
+            enviarWhatsAppOriginal(datosPedido, resultado.pedidoId);
             
-            // Mostrar confirmación
-            mostrarNotificacion('✅ Pedido registrado exitosamente');
+            // Mostrar confirmación con ID
+            mostrarNotificacion(`✅ Pedido ${resultado.pedidoId} registrado`);
             
             // Limpiar carrito
             setTimeout(() => {
@@ -200,14 +224,21 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
                 updateCartUI();
                 closeCheckoutModal();
             }, 1500);
+        } else {
+            // Si falla, usar ID temporal como fallback
+            console.warn('⚠️ No se obtuvo ID de Sheets, usando temporal');
+            const idTemporal = generarIdPedidoTemporal();
+            enviarWhatsAppOriginal(datosPedido, idTemporal);
+            mostrarNotificacion('⚠️ Pedido enviado (verificar registro)');
         }
         
     } catch (error) {
         console.error('Error:', error);
         
-        // Aún así enviar por WhatsApp
-        enviarWhatsAppOriginal(datosPedido);
-        mostrarNotificacion('⚠️ Pedido enviado por WhatsApp (verificar registro)');
+        // En caso de error, usar ID temporal y enviar por WhatsApp
+        const idTemporal = generarIdPedidoTemporal();
+        enviarWhatsAppOriginal(datosPedido, idTemporal);
+        mostrarNotificacion('⚠️ Pedido enviado por WhatsApp');
     } finally {
         ocultarLoading();
     }
@@ -215,11 +246,15 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
 
 /**
  * Envía mensaje de WhatsApp (función original)
+ * @param {Object} datosPedido - Datos del pedido
+ * @param {string} pedidoId - ID del pedido (generado por Sheets o temporal)
  */
-function enviarWhatsAppOriginal(datosPedido) {
+function enviarWhatsAppOriginal(datosPedido, pedidoId) {
     const { cliente, items, subtotal, descuentoMonto, totalFinal, metodoEntrega, tipoPago } = datosPedido;
     
     let mensaje = '🛒 *NUEVO PEDIDO - IMOLARTE*\n\n';
+    mensaje += `🆔 *ID Pedido:* ${pedidoId}\n`;
+    mensaje += `📅 Fecha: ${new Date().toLocaleDateString('es-CO')}\n\n`;
     mensaje += '👤 *DATOS DEL CLIENTE*\n';
     mensaje += `📝 ${cliente.tipoDocumento}: ${cliente.numeroDocumento}\n`;
     mensaje += `Nombre: ${cliente.nombre} ${cliente.apellido}\n`;
@@ -246,13 +281,21 @@ function enviarWhatsAppOriginal(datosPedido) {
     
     mensaje += `💰 *TOTAL: ${formatPrice(totalFinal)}*\n\n`;
     
+    // Información de pago según tipo
     if (tipoPago === 'PAGO_100') {
-        mensaje += `✨ *PAGO COMPLETO* (con descuento ${DESCUENTO_PAGO_COMPLETO}%)\n\n`;
-    } else {
+        mensaje += `✨ *PAGO ANTICIPADO COMPLETO*\n`;
+        mensaje += `Con descuento del ${DESCUENTO_PAGO_COMPLETO}%\n`;
+        mensaje += `Monto a pagar: ${formatPrice(totalFinal)}\n\n`;
+    } else if (tipoPago === 'ANTICIPO_60') {
         const anticipo = calcularAnticipo(totalFinal);
         const saldo = totalFinal - anticipo;
         mensaje += `📊 *ANTICIPO (60%)*: ${formatPrice(anticipo)}\n`;
-        mensaje += `📊 Saldo pendiente: ${formatPrice(saldo)}\n\n`;
+        mensaje += `📊 Saldo pendiente (40%): ${formatPrice(saldo)}\n`;
+        mensaje += `💡 Saldo a pagar al recibir el pedido\n\n`;
+    } else if (tipoPago === 'WHATSAPP_ONLY') {
+        mensaje += `💬 *SOLICITUD DE PEDIDO*\n`;
+        mensaje += `Forma de pago: A coordinar\n`;
+        mensaje += `📞 Por favor confirma disponibilidad y coordinaremos la forma de pago\n\n`;
     }
     
     mensaje += `🚚 *ENTREGA*\n`;
