@@ -19,7 +19,7 @@ const CART_CONFIG = {
 
 // ===== VARIABLES GLOBALES =====
 
-let cart = [];
+window.cart = [];
 let cartTimer = null;
 let cartTimerInterval = null;
 
@@ -32,25 +32,25 @@ function cargarCarritoGuardado() {
   try {
     const stored = localStorage.getItem(CART_CONFIG.STORAGE_KEY);
     if (stored) {
-      cart = JSON.parse(stored);
+      window.cart = JSON.parse(stored);
       
       // Verificar si expiró
       const tiempoRestante = getTiempoRestante();
       
-      if (tiempoRestante <= 0 && cart.length > 0) {
+      if (tiempoRestante <= 0 && window.cart.length > 0) {
         console.log('🗑️ Carrito expirado al cargar página');
-        cart = [];
+        window.cart = [];
         localStorage.removeItem(CART_CONFIG.STORAGE_KEY);
         localStorage.removeItem(CART_CONFIG.TIMER_KEY);
-      } else if (cart.length > 0) {
+      } else if (window.cart.length > 0) {
         // Reiniciar timer
         reanudarTimer();
-        console.log(`⏰ Carrito cargado: ${cart.length} items, ${tiempoRestante} min restantes`);
+        console.log(`⏰ Carrito cargado: ${window.cart.length} items, ${tiempoRestante} min restantes`);
       }
     }
   } catch (e) {
     console.error('Error cargando carrito:', e);
-    cart = [];
+    window.cart = [];
   }
   
   updateCartUI();
@@ -63,16 +63,16 @@ function cargarCarritoGuardado() {
  */
 function addToCart(product) {
   // Buscar si ya existe
-  const existingIndex = cart.findIndex(item => 
+  const existingIndex = window.cart.findIndex(item => 
     item.code === product.code && item.collection === product.collection
   );
   
   if (existingIndex > -1) {
     // Incrementar cantidad
-    cart[existingIndex].quantity += product.quantity;
+    window.cart[existingIndex].quantity += product.quantity;
   } else {
     // Agregar nuevo
-    cart.push(product);
+    window.cart.push(product);
   }
   
   guardarCarrito();
@@ -92,9 +92,9 @@ function addToCart(product) {
  * Elimina producto del carrito
  */
 function removeFromCart(index) {
-  if (index >= 0 && index < cart.length) {
-    const producto = cart[index].description;
-    cart.splice(index, 1);
+  if (index >= 0 && index < window.cart.length) {
+    const producto = window.cart[index].description;
+    window.cart.splice(index, 1);
     guardarCarrito();
     updateCartUI();
     
@@ -106,11 +106,11 @@ function removeFromCart(index) {
  * Actualiza cantidad de un producto
  */
 function updateQuantity(index, newQuantity) {
-  if (index >= 0 && index < cart.length) {
+  if (index >= 0 && index < window.cart.length) {
     if (newQuantity <= 0) {
       removeFromCart(index);
     } else {
-      cart[index].quantity = parseInt(newQuantity);
+      window.cart[index].quantity = parseInt(newQuantity);
       guardarCarrito();
       updateCartUI();
     }
@@ -121,7 +121,7 @@ function updateQuantity(index, newQuantity) {
  * Calcula el total del carrito
  */
 function getCartTotal() {
-  return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  return window.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 }
 
 // ===== ACTUALIZAR UI =====
@@ -138,13 +138,13 @@ function updateCartUI() {
   
   // Contador
   if (cartCount) {
-    cartCount.textContent = cart.length;
-    cartCount.style.display = cart.length > 0 ? 'block' : 'none';
+    cartCount.textContent = window.cart.length;
+    cartCount.style.display = window.cart.length > 0 ? 'block' : 'none';
   }
   
   // Items
   if (cartItemsContainer) {
-    if (cart.length === 0) {
+    if (window.cart.length === 0) {
       cartItemsContainer.innerHTML = '';
       if (emptyMessage) emptyMessage.style.display = 'block';
       if (checkoutBtn) checkoutBtn.disabled = true;
@@ -152,7 +152,7 @@ function updateCartUI() {
       if (emptyMessage) emptyMessage.style.display = 'none';
       if (checkoutBtn) checkoutBtn.disabled = false;
       
-      cartItemsContainer.innerHTML = cart.map((item, index) => `
+      cartItemsContainer.innerHTML = window.cart.map((item, index) => `
         <div class="cart-item">
           <div class="cart-item-info">
             <h4>${item.description}</h4>
@@ -193,9 +193,9 @@ function updateCartUI() {
  */
 function guardarCarrito() {
   try {
-    localStorage.setItem(CART_CONFIG.STORAGE_KEY, JSON.stringify(cart));
+    localStorage.setItem(CART_CONFIG.STORAGE_KEY, JSON.stringify(window.cart));
     
-    if (cart.length > 0) {
+    if (window.cart.length > 0) {
       // Si hay items, iniciar timer si no existe
       if (!localStorage.getItem(CART_CONFIG.TIMER_KEY)) {
         iniciarTimer();
@@ -213,7 +213,7 @@ function guardarCarrito() {
  * Limpia el carrito completamente
  */
 function limpiarCarritoCompletamente() {
-  cart = [];
+  window.cart = [];
   localStorage.removeItem(CART_CONFIG.STORAGE_KEY);
   detenerTimer();
   updateCartUI();
@@ -328,7 +328,7 @@ function actualizarDisplayTimer() {
   const minutos = getTiempoRestante();
   const timerElement = document.getElementById('cart-timer');
   
-  if (timerElement && cart.length > 0) {
+  if (timerElement && window.cart.length > 0) {
     if (minutos > 0) {
       timerElement.textContent = `⏰ Expira en ${minutos} min`;
       timerElement.style.display = 'block';
@@ -350,7 +350,7 @@ function actualizarDisplayTimer() {
  * Muestra aviso de que quedan 5 minutos
  */
 function mostrarAvisoExpiracion() {
-  if (cart.length === 0) return;
+  if (window.cart.length === 0) return;
   
   mostrarNotificacionPush(
     '⚠️ Tu carrito expirará en 5 minutos',
@@ -369,11 +369,11 @@ function mostrarAvisoExpiracion() {
  * Limpia el carrito por expiración
  */
 function limpiarPorExpiracion() {
-  if (cart.length === 0) return;
+  if (window.cart.length === 0) return;
   
-  const cantidadItems = cart.length;
+  const cantidadItems = window.cart.length;
   
-  cart = [];
+  window.cart = [];
   localStorage.removeItem(CART_CONFIG.STORAGE_KEY);
   detenerTimer();
   updateCartUI();
@@ -506,7 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== EXPORTAR FUNCIONES =====
 
-window.cart = cart;
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.updateQuantity = updateQuantity;
