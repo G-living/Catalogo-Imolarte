@@ -944,6 +944,62 @@ function sendToWhatsApp() {
     }
 }
 
+// ===== FUNCIONES PARA MOSTRAR/OCULTAR OPCIONES =====
+
+/**
+ * Oculta las opciones de pago Wompi
+ */
+function ocultarOpcionesWompi() {
+    const opcionesWompi = document.querySelectorAll('.payment-option:not(.payment-whatsapp)');
+    const divider = document.querySelector('.payment-divider');
+    
+    opcionesWompi.forEach(opcion => {
+        opcion.style.display = 'none';
+    });
+    
+    if (divider) {
+        divider.style.display = 'none';
+    }
+    
+    console.log('❌ Opciones Wompi ocultas');
+}
+
+/**
+ * Oculta la opción de WhatsApp
+ */
+function ocultarOpcionWhatsApp() {
+    const opcionWhatsApp = document.querySelector('.payment-whatsapp');
+    const divider = document.querySelector('.payment-divider');
+    
+    if (opcionWhatsApp) {
+        opcionWhatsApp.style.display = 'none';
+    }
+    
+    if (divider) {
+        divider.style.display = 'none';
+    }
+    
+    console.log('❌ Opción WhatsApp oculta');
+}
+
+/**
+ * Muestra todas las opciones de pago
+ */
+function mostrarTodasLasOpciones() {
+    const todasLasOpciones = document.querySelectorAll('.payment-option');
+    const divider = document.querySelector('.payment-divider');
+    
+    todasLasOpciones.forEach(opcion => {
+        opcion.style.display = 'block';
+    });
+    
+    if (divider) {
+        divider.style.display = 'flex';
+    }
+    
+    console.log('✅ Todas las opciones visibles');
+}
+
 // ===== EVENT LISTENERS PARA NUEVOS BOTONES =====
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -953,19 +1009,37 @@ document.addEventListener('DOMContentLoaded', function() {
         originalOpenCheckoutModal();
         setTimeout(() => {
             actualizarMontosPago();
+            // Mostrar todas las opciones al abrir
+            mostrarTodasLasOpciones();
         }, 100);
     };
     
     // Botón Pagar Anticipo
     const btnAnticipo = document.getElementById('btnAnticipo');
     if (btnAnticipo) {
-        btnAnticipo.addEventListener('click', handlePagarAnticipo);
+        btnAnticipo.addEventListener('click', () => {
+            ocultarOpcionWhatsApp();
+            handlePagarAnticipo();
+        });
     }
     
     // Botón Pagar Completo
     const btnPagoCompleto = document.getElementById('btnPagoCompleto');
     if (btnPagoCompleto) {
-        btnPagoCompleto.addEventListener('click', handlePagarCompleto);
+        btnPagoCompleto.addEventListener('click', () => {
+            ocultarOpcionWhatsApp();
+            handlePagarCompleto();
+        });
+    }
+    
+    // Botón WhatsApp - interceptar el submit del formulario
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            ocultarOpcionesWompi();
+            // El sendToWhatsApp se ejecuta por el submit
+        });
     }
     
     console.log('✅ Nuevos botones de pago configurados');
