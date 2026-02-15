@@ -5,7 +5,7 @@
  */
 
 // ===== CONFIGURACIÓN =====
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwTU9we6E5nt3qBiPbIf6cDd_j3tXQdYwLj46l_mv_Nim8I3JAU3tUxgV2DXOqM5dMZ/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx73OKs0UgdASae2supyVThCfkwNyW-aouF0K3HRjG3UbiO6NiNdrm6XHshl29GVbwf/exec';
 
 // Porcentajes configurables
 const PORCENTAJE_ANTICIPO = 60;
@@ -64,13 +64,47 @@ async function enviarPedidoASheets(datosPedido) {
         console.log('📊 Enviando pedido a Google Sheets...');
         console.log('Datos:', datosPedido);
         
+        // Preparar FormData (evita preflight CORS)
+        const formData = new FormData();
+        
+        // Cliente
+        formData.append('tipoDocumento', datosPedido.cliente.tipoDocumento);
+        formData.append('numeroDocumento', datosPedido.cliente.numeroDocumento);
+        formData.append('nombre', datosPedido.cliente.nombre);
+        formData.append('apellido', datosPedido.cliente.apellido);
+        formData.append('email', datosPedido.cliente.email);
+        formData.append('codigoPais', datosPedido.cliente.codigoPais);
+        formData.append('telefono', datosPedido.cliente.telefono);
+        formData.append('cumpleDia', datosPedido.cliente.cumpleDia);
+        formData.append('cumpleMes', datosPedido.cliente.cumpleMes);
+        formData.append('direccion', datosPedido.cliente.direccion || '');
+        formData.append('barrio', datosPedido.cliente.barrio || '');
+        formData.append('ciudad', datosPedido.cliente.ciudad || '');
+        formData.append('notasDireccion', datosPedido.cliente.notasDireccion || '');
+        
+        // Items (como JSON string)
+        formData.append('items', JSON.stringify(datosPedido.items));
+        
+        // Totales
+        formData.append('subtotal', datosPedido.subtotal);
+        formData.append('descuentoPorcentaje', datosPedido.descuentoPorcentaje);
+        formData.append('descuentoMonto', datosPedido.descuentoMonto);
+        formData.append('totalFinal', datosPedido.totalFinal);
+        
+        // Entrega
+        formData.append('metodoEntrega', datosPedido.metodoEntrega);
+        formData.append('notasEntrega', datosPedido.notasEntrega || '');
+        
+        // Pago
+        formData.append('tipoPago', datosPedido.tipoPago);
+        formData.append('notasInternas', datosPedido.notasInternas || '');
+        
+        // Enviar con FormData (NO incluir Content-Type, fetch lo infiere)
         const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            mode: 'cors', // Cambiado de 'no-cors' a 'cors'
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datosPedido)
+            mode: 'cors',
+            redirect: 'follow',
+            body: formData
         });
         
         // Ahora SÍ podemos leer la respuesta
@@ -225,7 +259,7 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
                 closeCheckoutModal();
             }, 1500);
         } else {
-            // Si falla, usar ID temporal como fallback
+            // Fallback: usar ID temporal
             console.warn('⚠️ No se obtuvo ID de Sheets, usando temporal');
             const idTemporal = generarIdPedidoTemporal();
             enviarWhatsAppOriginal(datosPedido, idTemporal);
