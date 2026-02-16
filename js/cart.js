@@ -326,21 +326,17 @@ function updateCartPage() {
 
 /**
  * Obtiene imagen comodín por colección
+ * Usa la función global si existe, sino usa el fallback
  */
 function getComodinImage(collection) {
-  const collectionMap = {
-    'GIALLO FIORE': 'images/comodin/GIALLO FIORE.jpg',
-    'BIANCO FIORE': 'images/comodin/BIANCO FIORE.jpg',
-    'MAZZETTO': 'images/comodin/MAZZETTO.jpg',
-    'GAROFANO BLU': 'images/comodin/GAROFANO BLU.jpg',
-    'GAROFANO IMOLA': 'images/comodin/GAROFANO IMOLA.jpg',
-    'GAROFANO TIFFANY': 'images/comodin/GAROFANO TIFFANY.jpg',
-    'GAROFANO ROSA': 'images/comodin/GAROFANO ROSA.jpg',
-    'GAROFANO LAVI': 'images/comodin/GAROFANO LAVI.jpg',
-    'ROSSO E ORO': 'images/comodin/ROSSO E ORO.jpg',
-    'AVORIO E ORO': 'images/comodin/AVORIO E ORO.jpg'
-  };
-  return collectionMap[collection] || 'images/comodin/default.jpg';
+  // Si products.js ya definió esta función, usarla
+  if (window.getComodinImage && window.getComodinImage !== getComodinImage) {
+    return window.getComodinImage(collection);
+  }
+  
+  // Fallback por si acaso
+  const cleanName = collection.replace(/ /g, '_').replace(/\//g, '_');
+  return `images/comodines/${cleanName}.png`;
 }
 
 // ===== NOTIFICACIONES =====
@@ -431,31 +427,35 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== ANIMACIONES CSS =====
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideInRight {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
+// Crear estilos de animación solo si no existen
+if (!document.getElementById('cart-animations-v7')) {
+  const cartStyle = document.createElement('style');
+  cartStyle.id = 'cart-animations-v7';
+  cartStyle.textContent = `
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
 
-  @keyframes slideOutRight {
-    from {
-      transform: translateX(0);
-      opacity: 1;
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
     }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-  }
-`;
-document.head.appendChild(style);
+  `;
+  document.head.appendChild(cartStyle);
+}
 
 // ===== EXPORTAR FUNCIONES =====
 
