@@ -122,7 +122,7 @@
                     <!-- Delivery Method -->
                     <div class="form-section">
                         <h3 class="form-section-title">🚚 Método de Entrega</h3>
-                        <div class="delivery-options">
+                        <div class="delivery-options" id="deliveryOptionsContainer">
                             <div class="delivery-option" data-delivery="pickup">
                                 <input type="radio" name="delivery" value="pickup" id="deliveryPickup" required>
                                 <div class="delivery-info">
@@ -138,6 +138,8 @@
                                 </div>
                             </div>
                         </div>
+                        <span class="error-message" id="deliveryError" style="display: none; color: #e74c3c; font-size: 0.9rem; margin-top: 0.5rem;">⚠️ Debes seleccionar un método de entrega</span>
+                    </div>
 
                         <!-- Address Fields -->
                         <div class="address-fields" id="addressFields">

@@ -135,11 +135,24 @@ function recopilarDatosPedido(tipoPago = 'ANTICIPO_60') {
   let descuentoPorcentaje = 0;
   let descuentoMonto = 0;
   let totalFinal = subtotal;
+  let notasInternas = '';
   
+  // ✅ CORREGIDO: Manejo correcto de cada tipo de pago
   if (tipoPago === 'PAGO_100') {
     descuentoPorcentaje = DESCUENTO_PAGO_COMPLETO;
     descuentoMonto = Math.round(subtotal * (DESCUENTO_PAGO_COMPLETO / 100));
     totalFinal = subtotal - descuentoMonto;
+    notasInternas = 'Opción: Pago completo -3%';
+  } else if (tipoPago === 'ANTICIPO_60') {
+    descuentoPorcentaje = 0;
+    descuentoMonto = 0;
+    totalFinal = subtotal;
+    notasInternas = 'Opción: Anticipo 60%';
+  } else if (tipoPago === 'WHATSAPP_ONLY') {
+    descuentoPorcentaje = 0;
+    descuentoMonto = 0;
+    totalFinal = subtotal;
+    notasInternas = 'Pedido vía WhatsApp - Pago pendiente';
   }
   
   // Items
@@ -176,7 +189,7 @@ function recopilarDatosPedido(tipoPago = 'ANTICIPO_60') {
     metodoEntrega: esDomicilio ? 'DOMICILIO' : 'RETIRO',
     notasEntrega: notasEntrega,
     tipoPago: tipoPago,
-    notasInternas: `Opción: ${tipoPago === 'PAGO_100' ? 'Pago completo -3%' : 'Anticipo 60%'}`
+    notasInternas: notasInternas
   };
 }
 
