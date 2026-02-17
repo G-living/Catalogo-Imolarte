@@ -1,0 +1,47 @@
+# wrangler.toml
+# Cloudflare Workers configuration for IMOLARTE
+
+# ==============================================
+# WORKER 1: Signature Generator
+# ==============================================
+[[workers]]
+name = "imolarte-signature-generator"
+main = "workers/signature-generator.js"
+compatibility_date = "2026-02-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Secrets (set via: wrangler secret put WOMPI_INTEGRITY_KEY)
+# - WOMPI_INTEGRITY_KEY: Your Wompi integrity secret key
+
+# ==============================================
+# WORKER 2: Wompi Webhook
+# ==============================================
+[[workers]]
+name = "imolarte-wompi-webhook"
+main = "workers/wompi-webhook.js"
+compatibility_date = "2026-02-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# - WOMPI_EVENTS_SECRET: Wompi events webhook secret (REQUIRED)
+# - GOOGLE_SHEETS_WEBHOOK_URL: Your Google Apps Script Web App URL
+
+# ==============================================
+# NOTES:
+# ==============================================
+# 1. Deploy each worker separately:
+#    cd workers
+#    wrangler deploy signature-generator.js
+#    wrangler deploy wompi-webhook.js
+#
+# 2. Set secrets after deployment:
+#    wrangler secret put WOMPI_INTEGRITY_KEY --name imolarte-signature-generator
+#    wrangler secret put GOOGLE_SHEETS_WEBHOOK_URL --name imolarte-wompi-webhook
+#
+# 3. Worker URLs will be:
+#    https://imolarte-signature-generator.YOUR-SUBDOMAIN.workers.dev
+#    https://imolarte-wompi-webhook.YOUR-SUBDOMAIN.workers.dev
+#
+# 4. Configure Wompi webhook URL:
+#    Go to Wompi dashboard → Webhooks → Add URL:
+#    https://imolarte-wompi-webhook.YOUR-SUBDOMAIN.workers.dev
