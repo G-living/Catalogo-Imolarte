@@ -1,285 +1,121 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMOLARTE by Helena Caballero - Cerámicas Artesanales Italianas</title>
-    <meta name="description" content="Catálogo de cerámicas artesanales importadas de Italia. 104 productos únicos en 10 colecciones exclusivas.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/checkout.css">
-    <link rel="stylesheet" href="css/validation-styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imolarte Colombia | Catálogo Digital</title>
+  
+  <!-- Wompi Widget Sandbox -->
+  <script src="https://checkout.wompi.co/widget.js" data-render="button" data-public-key="pub_test_XXXXXXXX"></script>
+
+  <style>
+    /* === BASE STYLES === */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #1a1a1a; background: #f9f9f9; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    h1, h2, h3 { color: #1a1a1a; }
+    
+    /* === TOAST NOTIFICATIONS === */
+    .imolarte-toast {
+      position: fixed; top: 20px; right: 20px; z-index: 9999;
+      background: #1a1a1a; color: #fff; padding: 12px 20px;
+      border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transform: translateX(150%); transition: transform 0.3s ease;
+      font-size: 14px; max-width: 320px; display: flex; align-items: center; gap: 10px;
+    }
+    .imolarte-toast.show { transform: translateX(0); }
+    .toast-success { border-left: 4px solid #22c55e; }
+    .toast-error { border-left: 4px solid #ef4444; }
+    .toast-info { border-left: 4px solid #3b82f6; }
+
+    /* === CHECKOUT FORM === */
+    .checkout-section { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: 30px; }
+    .checkout-section input, .checkout-section select, .checkout-section textarea {
+      width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
+    }
+    .btn-primary { background: #1a1a1a; color: #fff; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%; }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+    
+    /* === DONO MODE CARD === */
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .product-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
+    .dono-card { border: 2px solid #d4af37; background: #fffdf5; }
+    .dono-icon { font-size: 40px; margin-bottom: 10px; }
+    .dono-amount-selector { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+    .amount-btn { padding: 5px 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; border-radius: 4px; }
+    .amount-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+    #dono-custom-amount { width: 100px; padding: 5px; text-align: center; }
+
+    /* === DONO MODAL === */
+    .dono-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); z-index: 10000;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .dono-modal-content {
+      background: #fff; color: #1a1a1a; padding: 24px;
+      border-radius: 12px; max-width: 400px; width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .dono-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-secondary { background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; flex: 1; }
+  </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <img src="images/branding/logo-hc.jpg" alt="Helena Caballero" class="logo-hc">
-        <img src="images/branding/logo-imolarte.png" alt="Imolarte" class="logo-imolarte">
+
+  <div class="container">
+    <header>
+      <h1>🇮🇹 Imolarte Colombia</h1>
+      <p>Cerámicas Italianas de Lujo</p>
     </header>
 
-    <!-- Floating Cart Button -->
-    <button class="cart-float" id="cartButton" aria-label="Ver carrito">
-        <span class="cart-icon">🛒</span>
-        <span class="cart-badge" id="cartBadge">0</span>
-    </button>
-
-    <!-- Main Content -->
-    <main class="container">
-        <div class="products-grid" id="productsGrid">
-            <!-- Products loaded by JavaScript -->
-        </div>
-    </main>
-
-    <!-- Product Modal -->
-    <div class="modal" id="productModal" role="dialog" aria-modal="true">
-        <div class="modal-content">
-            <button class="close-btn" id="closeModal" aria-label="Cerrar">×</button>
-            <div id="modalBody"></div>
-        </div>
+    <!-- === CATALOG GRID (Your Existing Products Load Here) === -->
+    <div id="catalog" class="products-grid">
+      <!-- Dono Mode will inject its card here automatically via JS -->
+      <!-- Your existing product cards should be here -->
     </div>
 
-    <!-- Cart Page -->
-    <div class="cart-page" id="cartPage">
-        <div class="cart-container">
-            <div class="cart-header">
-                <h1 class="cart-title">Mi Pedido</h1>
-                <button class="close-cart" id="closeCart">← Seguir Comprando</button>
-            </div>
-            <div class="cart-items" id="cartItems"></div>
-            <div id="cartSummary"></div>
-        </div>
+    <!-- === CHECKOUT SECTION === -->
+    <div id="checkout-section" class="checkout-section" style="display:none;">
+      <h2>🛒 Finalizar Pedido</h2>
+      <form id="checkout-form">
+        <label>Nombre Completo</label>
+        <input type="text" id="client-name" required>
+        
+        <label>Email</label>
+        <input type="email" id="client-email" required>
+        
+        <label>Teléfono</label>
+        <input type="tel" id="client-phone" required>
+        
+        <label>¿Quién te recomendó? (Código de Referido)</label>
+        <input type="text" id="referral-code-input" placeholder="Ej: REF-ABC123" pattern="REF-[A-Z0-9\-]+">
+        <small style="color:#666">Ambos reciben beneficios ✨</small>
+
+        <label>Método de Pago</label>
+        <select id="payment-method" required>
+          <option value="ANTICIPO_60">Anticipo 60%</option>
+          <option value="PAGO_100">Pago Completo (-3%)</option>
+          <option value="WHATSAPP_ONLY">Coordinar por WhatsApp</option>
+        </select>
+
+        <div id="wompi-button-container"></div>
+        
+        <button type="submit" id="checkout-submit" class="btn-primary">Confirmar Pedido</button>
+      </form>
     </div>
+  </div>
 
-    <!-- Checkout Modal -->
-    <div class="checkout-modal" id="checkoutModal">
-        <div class="checkout-content">
-            <div class="checkout-header">
-                <h2 class="checkout-title">Finalizar Pedido</h2>
-                <button class="close-checkout" id="closeCheckout">×</button>
-            </div>
-            <div class="checkout-body">
-                <form id="checkoutForm">
-                    <!-- Personal Info -->
-                    <div class="form-section">
-                        <h3 class="form-section-title">📋 Datos Personales</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label class="form-label required">Nombre(s)</label>
-                                <input type="text" class="form-input" id="firstName" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" aria-describedby="firstName-error">
-                                <span id="firstName-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label required">Apellido(s)</label>
-                                <input type="text" class="form-input" id="lastName" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" aria-describedby="lastName-error">
-                                <span id="lastName-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label required">Tipo de Documento</label>
-                                <select class="form-input" id="docType" required aria-describedby="docType-error">
-                                    <option value="">Selecciona</option>
-                                    <option value="CC">CC - Cédula de Ciudadanía</option>
-                                    <option value="CE">CE - Cédula de Extranjería</option>
-                                </select>
-                                <span id="docType-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label required">Número de Identificación</label>
-                                <input type="text" class="form-input" id="docNumber" required pattern="[0-9]+" aria-describedby="docNumber-error">
-                                <span id="docNumber-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label required">Fecha de Cumpleaños</label>
-                                <div class="birthday-group">
-                                    <select class="form-input" id="birthdayDay" required aria-describedby="birthdayDay-error">
-                                        <option value="">Día</option>
-                                    </select>
-                                    <select class="form-input" id="birthdayMonth" required>
-                                        <option value="">Mes</option>
-                                    </select>
-                                </div>
-                                <span id="birthdayDay-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label required">Email</label>
-                                <input type="email" class="form-input" id="email" required aria-describedby="email-error">
-                                <span id="email-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                            <div class="form-group full-width">
-                                <label class="form-label required">Celular / WhatsApp</label>
-                                <div class="phone-group">
-                                    <select class="form-input phone-prefix" id="countryCode" required>
-                                        <option value="+57">🇨🇴 +57</option>
-                                        <option value="+1">🇺🇸 +1</option>
-                                        <option value="+52">🇲🇽 +52</option>
-                                    </select>
-                                    <input type="tel" class="form-input phone-number" id="phone" required pattern="[0-9]{10}" placeholder="3001234567" aria-describedby="phone-error">
-                                </div>
-                                <span id="phone-error" class="error-message hidden" aria-live="polite"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Delivery Method -->
-                    <div class="form-section">
-                        <h3 class="form-section-title">🚚 Método de Entrega</h3>
-                        <div class="delivery-options" id="deliveryOptionsContainer">
-                            <div class="delivery-option" data-delivery="pickup">
-                                <input type="radio" name="delivery" value="pickup" id="deliveryPickup" required>
-                                <div class="delivery-info">
-                                    <div class="delivery-title">🏪 Retiro en Almacén</div>
-                                    <div class="delivery-subtitle">Sin costo adicional</div>
-                                </div>
-                            </div>
-                            <div class="delivery-option" data-delivery="home">
-                                <input type="radio" name="delivery" value="home" id="deliveryHome">
-                                <div class="delivery-info">
-                                    <div class="delivery-title">🚚 Entrega a Domicilio</div>
-                                    <div class="delivery-subtitle">Costo según ubicación</div>
-                                </div>
-                            </div>
-                        </div>
-                        <span id="deliveryOptions-error" class="error-message hidden" aria-live="polite"></span>
-
-                        <!-- Address Fields -->
-                        <div class="address-fields" id="addressFields">
-                            <div class="form-grid">
-                                <div class="form-group full-width">
-                                    <label class="form-label required">Dirección Completa</label>
-                                    <input type="text" class="form-input" id="address" placeholder="Calle 123 #45-67">
-                                    <div id="suggestions" class="suggestions"></div>
-                                    <span class="error-message">Campo requerido</span>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label required">Barrio</label>
-                                    <input type="text" class="form-input" id="neighborhood">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label required">Ciudad</label>
-                                    <input type="text" class="form-input" id="city" value="Bogotá">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label class="form-label">Notas / Indicaciones</label>
-                                    <textarea class="form-input" id="notes" rows="3" placeholder="Ej: Apartamento 302, timbre rojo..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Summary -->
-                    <div class="checkout-summary">
-                        <div class="summary-row">
-                            <span>Subtotal:</span>
-                            <span id="summarySubtotal">$0</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Envío:</span>
-                            <span id="summaryShipping">A calcular</span>
-                        </div>
-                        <div class="summary-row total">
-                            <span>Total:</span>
-                            <span id="summaryTotal">$0</span>
-                        </div>
-                    </div>
-
-                    <!-- Terms -->
-                    <div class="checkbox-group">
-                        <input type="checkbox" class="checkbox-input" id="termsAccept" required>
-                        <label class="checkbox-label" for="termsAccept">
-                            He leído y acepto los <a href="#" id="showTerms">Términos y Condiciones</a> *
-                        </label>
-                        <span id="termsAccept-error" class="error-message hidden" aria-live="polite"></span>
-                    </div>
-
-                    <!-- Tratamiento de Datos -->
-                    <div class="checkbox-group">
-                        <input type="checkbox" class="checkbox-input" id="cesionAccept" required>
-                        <label class="checkbox-label" for="cesionAccept">
-                            Autorizo el <a href="#" id="showCesion">tratamiento de datos personales (Ley 1581 de 2012)</a> *
-                        </label>
-                        <span id="cesionAccept-error" class="error-message hidden" aria-live="polite"></span>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="checkout-actions-new">
-                        <!-- Opción 1: Pagar Anticipo 60% -->
-                        <div class="payment-option">
-                            <div class="payment-header">
-                                <h4 class="payment-title">💰 Pagar Anticipo (60%)</h4>
-                                <p class="payment-desc">Paga el 60% ahora, el resto al recibir</p>
-                            </div>
-                            <div class="payment-amount" id="anticipoAmount">
-                                <span class="amount-label">Monto:</span>
-                                <span class="amount-value">$0</span>
-                            </div>
-                            <button type="button" class="btn btn-payment" id="btnAnticipo">
-                                <span>💳</span> Pagar Anticipo
-                            </button>
-                        </div>
-
-                        <!-- Opción 2: Pagar 100% Anticipado -->
-                        <div class="payment-option payment-recommended">
-                            <div class="payment-badge">🎉 Ahorra 3%</div>
-                            <div class="payment-header">
-                                <h4 class="payment-title">✨ Pagar 100% Anticipado</h4>
-                                <p class="payment-desc">Paga todo ahora y obtén 3% de descuento</p>
-                            </div>
-                            <div class="payment-savings" id="savingsAmount">
-                                <span class="savings-label">Ahorras:</span>
-                                <span class="savings-value">$0</span>
-                            </div>
-                            <div class="payment-amount" id="completeAmount">
-                                <span class="amount-label">Total a pagar:</span>
-                                <span class="amount-value">$0</span>
-                            </div>
-                            <button type="button" class="btn btn-payment btn-recommended" id="btnPagoCompleto">
-                                <span>💎</span> Pagar 100% Ahora
-                            </button>
-                        </div>
-
-                        <!-- Separador -->
-                        <div class="payment-divider">
-                            <span>o</span>
-                        </div>
-
-                        <!-- Opción 3: Solo enviar por WhatsApp -->
-                        <div class="payment-option payment-whatsapp">
-                            <div class="payment-header">
-                                <h4 class="payment-title">📱 Enviar por WhatsApp</h4>
-                                <p class="payment-desc">Envía tu pedido y coordina el pago después</p>
-                            </div>
-                            <button type="button" class="btn btn-whatsapp" id="btnWhatsApp">
-                                <span>📱</span> Enviar Pedido
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="js/catalog-data.js"></script>
-    <script src="js/image-config.js"></script>
-    <script src="js/cart.js"></script>
-    <script src="js/products.js"></script>
-    <script src="js/checkout.js"></script>
-    <script src="js/google-places.js"></script>
-    <script src="js/google-sheets-integration.js"></script>
-    
-    <!-- Checkout modules (load in order) -->
-    <script src="js/checkout-validation.js"></script>
-    <script src="js/checkout-payment.js"></script>
-    <script src="js/checkout-whatsapp.js"></script>
-    
-    <!-- Wompi widget -->
-    <script src="https://checkout.wompi.co/widget.js"></script>
-    <script>
-        // Google Maps Loader (v=weekly for latest)
-        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-          key: "AIzaSyDd1f-rpDSztTvxz07eaCDNCa8rjNG_Jb4",
-          v: "weekly"
-        });
-    </script>
+  <!-- === SCRIPTS === -->
+  <script src="js/checkout.js"></script>
+  <script src="js/dono-mode.js"></script>
+  
+  <script>
+    // Initialize Dono Mode after DOM loads
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof injectDonoButton === 'function') {
+        injectDonoButton();
+      }
+    });
+  </script>
 </body>
 </html>
