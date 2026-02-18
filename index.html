@@ -3,119 +3,526 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Imolarte Colombia - Cerámicas Italianas de Lujo">
   <title>Imolarte Colombia | Catálogo Digital</title>
   
   <!-- Wompi Widget Sandbox -->
   <script src="https://checkout.wompi.co/widget.js" data-render="button" data-public-key="pub_test_XXXXXXXX"></script>
-
+  
   <style>
     /* === BASE STYLES === */
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; color: #1a1a1a; background: #f9f9f9; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    h1, h2, h3 { color: #1a1a1a; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #1a1a1a;
+      background: #f9f9f9;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1, h2, h3 {
+      color: #1a1a1a;
+      margin-bottom: 1rem;
+    }
+    
+    /* === HEADER === */
+    header {
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    
+    header p {
+      margin: 5px 0 0 0;
+      color: #666;
+    }
+    
+    /* === CATALOG GRID === */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .product-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* === DONO MODE CARD === */
+    .dono-card {
+      border: 2px solid #d4af37;
+      background: linear-gradient(135deg, #fffdf5 0%, #fff 100%);
+      position: relative;
+    }
+    
+    .dono-card::before {
+      content: '🎁';
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      font-size: 40px;
+      opacity: 0.1;
+    }
+    
+    .dono-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    
+    .dono-desc {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    
+    .dono-amount-selector {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    
+    .amount-btn {
+      padding: 8px 16px;
+      border: 2px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .amount-btn:hover {
+      border-color: #1a1a1a;
+    }
+    
+    .amount-btn.active {
+      background: #1a1a1a;
+      color: #fff;
+      border-color: #1a1a1a;
+    }
+    
+    #dono-custom-amount {
+      width: 120px;
+      padding: 8px;
+      text-align: center;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .dono-note {
+      font-size: 12px;
+      color: #666;
+      margin: 10px 0;
+      font-style: italic;
+    }
+    
+    /* === BUTTONS === */
+    .btn-primary {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    
+    .btn-primary:hover {
+      background: #333;
+    }
+    
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      flex: 1;
+      font-weight: 600;
+    }
+    
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+    
+    /* === CHECKOUT SECTION === */
+    .checkout-section {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      margin-top: 30px;
+      display: none; /* Hidden by default, shown when cart has items */
+    }
+    
+    .checkout-section h2 {
+      margin-top: 0;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 15px;
+    }
+    
+    .checkout-section label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .checkout-section input,
+    .checkout-section select,
+    .checkout-section textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .checkout-section input:focus,
+    .checkout-section select:focus,
+    .checkout-section textarea:focus {
+      outline: none;
+      border-color: #1a1a1a;
+    }
+    
+    .checkout-section small {
+      display: block;
+      margin-top: 5px;
+      color: #666;
+      font-size: 12px;
+    }
     
     /* === TOAST NOTIFICATIONS === */
     .imolarte-toast {
-      position: fixed; top: 20px; right: 20px; z-index: 9999;
-      background: #1a1a1a; color: #fff; padding: 12px 20px;
-      border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      transform: translateX(150%); transition: transform 0.3s ease;
-      font-size: 14px; max-width: 320px; display: flex; align-items: center; gap: 10px;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      transform: translateX(150%);
+      transition: transform 0.3s ease;
+      font-size: 14px;
+      max-width: 350px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    .imolarte-toast.show { transform: translateX(0); }
-    .toast-success { border-left: 4px solid #22c55e; }
-    .toast-error { border-left: 4px solid #ef4444; }
-    .toast-info { border-left: 4px solid #3b82f6; }
-
-    /* === CHECKOUT FORM === */
-    .checkout-section { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: 30px; }
-    .checkout-section input, .checkout-section select, .checkout-section textarea {
-      width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
-    }
-    .btn-primary { background: #1a1a1a; color: #fff; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%; }
-    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
     
-    /* === DONO MODE CARD === */
-    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .product-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
-    .dono-card { border: 2px solid #d4af37; background: #fffdf5; }
-    .dono-icon { font-size: 40px; margin-bottom: 10px; }
-    .dono-amount-selector { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
-    .amount-btn { padding: 5px 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; border-radius: 4px; }
-    .amount-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-    #dono-custom-amount { width: 100px; padding: 5px; text-align: center; }
-
+    .imolarte-toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast-success {
+      border-left: 4px solid #22c55e;
+    }
+    
+    .toast-error {
+      border-left: 4px solid #ef4444;
+    }
+    
+    .toast-info {
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .toast-icon {
+      font-size: 18px;
+    }
+    
     /* === DONO MODAL === */
     .dono-modal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); z-index: 10000;
-      display: flex; align-items: center; justify-content: center; padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
     }
+    
     .dono-modal-content {
-      background: #fff; color: #1a1a1a; padding: 24px;
-      border-radius: 12px; max-width: 400px; width: 100%;
+      background: #fff;
+      color: #1a1a1a;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 450px;
+      width: 100%;
       box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      position: relative;
+      animation: modalSlideIn 0.3s ease;
     }
-    .dono-actions { display: flex; gap: 10px; margin-top: 16px; }
-    .btn-secondary { background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; flex: 1; }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .dono-modal-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 28px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.2s;
+    }
+    
+    .dono-modal-close:hover {
+      color: #1a1a1a;
+    }
+    
+    .dono-modal-content h3 {
+      margin-top: 0;
+    }
+    
+    .dono-amount-display {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-size: 16px;
+    }
+    
+    .dono-modal-content label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .dono-modal-content input,
+    .dono-modal-content textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .dono-modal-content small {
+      display: block;
+      margin-top: 5px;
+      color: #666;
+      font-size: 12px;
+    }
+    
+    .dono-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .products-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .checkout-section {
+        padding: 20px;
+      }
+      
+      .imolarte-toast {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+      }
+    }
   </style>
 </head>
 <body>
-
-  <div class="container">
-    <header>
+  <!-- === HEADER === -->
+  <header>
+    <div class="container">
       <h1>🇮🇹 Imolarte Colombia</h1>
       <p>Cerámicas Italianas de Lujo</p>
-    </header>
-
-    <!-- === CATALOG GRID (Your Existing Products Load Here) === -->
-    <div id="catalog" class="products-grid">
-      <!-- Dono Mode will inject its card here automatically via JS -->
-      <!-- Your existing product cards should be here -->
     </div>
-
+  </header>
+  
+  <!-- === MAIN CONTENT === -->
+  <main class="container">
+    <!-- === CATALOG GRID === -->
+    <div id="catalog" class="products-grid">
+      <!-- Dono Mode card will be injected here automatically by dono-mode.js -->
+      <!-- Your existing product cards should be here -->
+      
+      <!-- Example Product Card (Replace with your actual products) -->
+      <div class="product-card">
+        <h3>Jarrón Giallo Fiore</h3>
+        <p>Colección: GIALLO FIORE</p>
+        <p><strong>$459,800 COP</strong></p>
+        <button class="btn-primary" onclick="addToCart('GF002', 'Jarrón Giallo Fiore', 459800)">Agregar al carrito</button>
+      </div>
+      
+      <div class="product-card">
+        <h3>Biscuit Bowl Garofano</h3>
+        <p>Colección: GAROFANO LAVI</p>
+        <p><strong>$1,045,900 COP</strong></p>
+        <button class="btn-primary" onclick="addToCart('GL006', 'Biscuit Bowl Garofano', 1045900)">Agregar al carrito</button>
+      </div>
+    </div>
+    
     <!-- === CHECKOUT SECTION === -->
-    <div id="checkout-section" class="checkout-section" style="display:none;">
+    <div id="checkout-section" class="checkout-section">
       <h2>🛒 Finalizar Pedido</h2>
+      
       <form id="checkout-form">
-        <label>Nombre Completo</label>
-        <input type="text" id="client-name" required>
+        <label for="client-name">Nombre Completo *</label>
+        <input type="text" id="client-name" name="nombre" required placeholder="Ej: María López">
         
-        <label>Email</label>
-        <input type="email" id="client-email" required>
+        <label for="client-email">Email *</label>
+        <input type="email" id="client-email" name="email" required placeholder="maria@example.com">
         
-        <label>Teléfono</label>
-        <input type="tel" id="client-phone" required>
+        <label for="client-phone">Teléfono *</label>
+        <input type="tel" id="client-phone" name="telefono" required placeholder="300 123 4567">
         
-        <label>¿Quién te recomendó? (Código de Referido)</label>
-        <input type="text" id="referral-code-input" placeholder="Ej: REF-ABC123" pattern="REF-[A-Z0-9\-]+">
-        <small style="color:#666">Ambos reciben beneficios ✨</small>
-
-        <label>Método de Pago</label>
-        <select id="payment-method" required>
+        <label for="client-address">Dirección de Entrega</label>
+        <input type="text" id="client-address" name="direccion" placeholder="Calle 123 #45-67">
+        
+        <label for="client-neighborhood">Barrio</label>
+        <input type="text" id="client-neighborhood" name="barrio" placeholder="Chapinero">
+        
+        <label for="client-city">Ciudad</label>
+        <input type="text" id="client-city" name="ciudad" value="Bogotá" placeholder="Bogotá">
+        
+        <label for="delivery-notes">Notas de Entrega</label>
+        <textarea id="delivery-notes" name="notas" rows="2" placeholder="Apto 301, Portería, etc."></textarea>
+        
+        <label for="referral-code-input">¿Quién te recomendó? (Opcional)</label>
+        <input type="text" id="referral-code-input" name="referral" placeholder="Código de referido (ej: REF-ABC123)" pattern="REF-[A-Z0-9\-]+">
+        <small>Ambos reciben beneficios ✨</small>
+        
+        <label for="payment-method">Método de Pago *</label>
+        <select id="payment-method" name="pago" required>
           <option value="ANTICIPO_60">Anticipo 60%</option>
-          <option value="PAGO_100">Pago Completo (-3%)</option>
+          <option value="PAGO_100">Pago Completo (-3% descuento)</option>
           <option value="WHATSAPP_ONLY">Coordinar por WhatsApp</option>
         </select>
-
-        <div id="wompi-button-container"></div>
         
-        <button type="submit" id="checkout-submit" class="btn-primary">Confirmar Pedido</button>
+        <div id="wompi-button-container" style="margin-top: 20px;"></div>
+        
+        <button type="submit" id="checkout-submit" class="btn-primary" style="margin-top: 20px;">
+          Confirmar Pedido
+        </button>
       </form>
     </div>
-  </div>
-
-  <!-- === SCRIPTS === -->
+  </main>
+  
+  <!-- === FOOTER === -->
+  <footer style="background: #1a1a1a; color: #fff; padding: 30px 0; margin-top: 50px; text-align: center;">
+    <div class="container">
+      <p>&copy; 2026 Imolarte Colombia. Todos los derechos reservados.</p>
+      <p style="margin-top: 10px; font-size: 14px; color: #999;">
+        Cerámicas italianas de lujo • Hecho con ❤️ en Bogotá
+      </p>
+    </div>
+  </footer>
+  
+  <!-- === JAVASCRIPT === -->
+  <script>
+    // === SIMPLE CART SYSTEM (Replace with your actual cart logic) ===
+    window.cart = [];
+    
+    function addToCart(productId, productName, price) {
+      const existingItem = window.cart.find(item => item.id === productId);
+      
+      if (existingItem) {
+        existingItem.qty++;
+      } else {
+        window.cart.push({
+          id: productId,
+          name: productName,
+          price: price,
+          qty: 1
+        });
+      }
+      
+      // Show checkout section
+      const checkoutSection = document.getElementById('checkout-section');
+      if (checkoutSection) {
+        checkoutSection.style.display = 'block';
+        checkoutSection.scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      if (typeof showToast === 'function') {
+        showToast(`✅ ${productName} agregado al carrito`, 'success');
+      }
+      
+      updateCartDisplay();
+    }
+    
+    function updateCartDisplay() {
+      // You can add cart count display here
+      console.log('Cart:', window.cart);
+    }
+  </script>
+  
+  <!-- === INCLUDE CHECKOUT AND DONO MODE SCRIPTS === -->
   <script src="js/checkout.js"></script>
   <script src="js/dono-mode.js"></script>
-  
-  <script>
-    // Initialize Dono Mode after DOM loads
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof injectDonoButton === 'function') {
-        injectDonoButton();
-      }
-    });
-  </script>
 </body>
 </html>

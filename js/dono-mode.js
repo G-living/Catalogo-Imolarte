@@ -1,20 +1,27 @@
 /**
  * IMOLARTE - Dono Mode (Gift Card)
- * Features: Catalog injection, amount selector, recipient form, 
- *           WhatsApp share, backend logging
  * 
- * Web App Endpoint: https://script.google.com/macros/s/AKfycbxaoRuG9JLeSh4EWpcfDg-k68WdjheklfoJ90P7LN3XiQ4B9V2ZTR1eBhxieo-N2Z5rLw/exec
+ * Features:
+ * ✅ Catalog injection (first card position)
+ * ✅ Amount selector (presets + custom)
+ * ✅ Recipient form modal
+ * ✅ WhatsApp share with pre-filled gift message
+ * ✅ Backend logging to DONOS sheet
+ * ✅ Unique Dono code generation
+ * 
+ * Backend: IMOLARTE-sistema (Bound Apps Script)
+ * Web App: https://script.google.com/macros/s/AKfycbxaoRuG9JLeSh4EWpcfDg-k68WdjheklfoJ90P7LN3XiQ4B9V2ZTR1eBhxieo-N2Z5rLw/exec
  */
 
 // === CONFIG ===
 const APPS_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxaoRuG9JLeSh4EWpcfDg-k68WdjheklfoJ90P7LN3XiQ4B9V2ZTR1eBhxieo-N2Z5rLw/exec';
 
 const DONO_CONFIG = {
-  minAmount: 50000,        // Minimum gift amount (COP)
-  maxAmount: 5000000,      // Maximum gift amount (COP)
-  defaultAmount: 200000,   // Default selected amount
-  whatsappNumber: '573004257367', // From CONFIG sheet
-  validityMonths: 6        // Gift card validity period
+  minAmount: 50000,
+  maxAmount: 5000000,
+  defaultAmount: 200000,
+  whatsappNumber: '573004257367',
+  validityMonths: 6
 };
 
 // === INJECT DONO CARD INTO CATALOG ===
@@ -58,20 +65,15 @@ function injectDonoButton() {
   catalogGrid.insertBefore(donoCard, catalogGrid.firstChild);
   
   // === EVENT LISTENERS ===
-  
-  // Amount button selection
   donoCard.querySelectorAll('.amount-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      // Update active state
       donoCard.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
-      // Clear custom input
       const customInput = document.getElementById('dono-custom-amount');
       if (customInput) customInput.value = '';
     });
   });
   
-  // Custom amount input: deselect preset buttons
   const customInput = document.getElementById('dono-custom-amount');
   if (customInput) {
     customInput.addEventListener('input', () => {
@@ -79,7 +81,6 @@ function injectDonoButton() {
     });
   }
   
-  // Add to cart button
   document.getElementById('dono-add-to-cart')?.addEventListener('click', handleDonoAddToCart);
 }
 
@@ -88,7 +89,6 @@ function handleDonoAddToCart() {
   const customInput = document.getElementById('dono-custom-amount');
   const selectedBtn = document.querySelector('.amount-btn.active');
   
-  // Determine amount
   let amount = DONO_CONFIG.defaultAmount;
   
   if (customInput?.value) {
@@ -97,7 +97,6 @@ function handleDonoAddToCart() {
     amount = parseInt(selectedBtn.dataset.amount);
   }
   
-  // Validate amount
   if (amount < DONO_CONFIG.minAmount || amount > DONO_CONFIG.maxAmount) {
     if (typeof showToast === 'function') {
       showToast(`Monto debe estar entre $${DONO_CONFIG.minAmount.toLocaleString('es-CO')} y $${DONO_CONFIG.maxAmount.toLocaleString('es-CO')}`, 'error');
@@ -107,13 +106,11 @@ function handleDonoAddToCart() {
     return;
   }
   
-  // Show recipient modal
   showDonoModal(amount);
 }
 
 // === MODAL: Recipient Info Form ===
 function showDonoModal(amount) {
-  // Create modal container
   const modal = document.createElement('div');
   modal.className = 'dono-modal';
   modal.setAttribute('role', 'dialog');
@@ -148,20 +145,12 @@ function showDonoModal(amount) {
     </div>
   `;
   
-  // Append to body
   document.body.appendChild(modal);
   
   // === MODAL EVENT HANDLERS ===
-  
-  // Close on X button
   modal.querySelector('.dono-modal-close').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
   
-  // Close on background click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.remove();
-  });
-  
-  // Close on Escape key
   const onEscape = (e) => {
     if (e.key === 'Escape') {
       modal.remove();
@@ -170,10 +159,8 @@ function showDonoModal(amount) {
   };
   document.addEventListener('keydown', onEscape);
   
-  // Cancel button
   document.getElementById('dono-cancel').addEventListener('click', () => modal.remove());
   
-  // Form submission
   document.getElementById('dono-form').addEventListener('submit', (e) => {
     e.preventDefault();
     
@@ -182,16 +169,11 @@ function showDonoModal(amount) {
     const phone = document.getElementById('recipient-phone').value.replace(/\D/g, '');
     const message = document.getElementById('dono-message').value.trim();
     
-    // Generate unique Dono code
     const donoCode = `DONO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2,4).toUpperCase()}`;
     
-    // Send via WhatsApp
     sendDonoViaWhatsApp({ amount, donor, recipient, phone, message, donoCode });
-    
-    // Log to backend (non-blocking)
     logDonoCreation({ donoCode, amount, donor, recipient, phone, message });
     
-    // Close modal + feedback
     modal.remove();
     if (typeof showToast === 'function') {
       showToast('🎁 Dono listo para enviar por WhatsApp', 'success');
@@ -201,10 +183,8 @@ function showDonoModal(amount) {
 
 // === WHATSAPP: Pre-filled Gift Message ===
 function sendDonoViaWhatsApp({ amount, donor, recipient, phone, message, donoCode }) {
-  // Sanitize phone: remove non-digits, ensure country code
   const cleanPhone = phone.startsWith('57') ? phone : `57${phone.replace(/^\+?/, '')}`;
   
-  // Build message
   const whatsappText = `
 🎁 *Dono Imolarte* 🎁
 
@@ -230,7 +210,6 @@ Con cariño,
 Imolarte Colombia 🇮🇹🇨🇴
   `.trim();
   
-  // Open WhatsApp
   const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappText)}`;
   window.open(url, '_blank', 'noopener,noreferrer');
 }
@@ -251,7 +230,6 @@ async function logDonoCreation(data) {
     console.log('✅ Dono logged:', data.donoCode);
   } catch (err) {
     console.warn('⚠️ Could not log dono (non-critical):', err);
-    // WhatsApp share already succeeded, logging is optional
   }
 }
 
@@ -259,7 +237,6 @@ async function logDonoCreation(data) {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', injectDonoButton);
 } else {
-  // DOM already ready
   injectDonoButton();
 }
 
