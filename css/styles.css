@@ -1997,3 +1997,324 @@ select.form-input {
         font-size: 1.2rem;
     }
 }
+
+/* ============================================================
+   DONO MODE STYLES - Add to end of styles.css
+   ============================================================ */
+
+/* Dono Container */
+.dono-container {
+    max-width: 1200px;
+    margin: 20px auto 10px;
+    padding: 0 20px;
+}
+
+/* Dono Button */
+.dono-button {
+    width: 100%;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-family: 'Lato', sans-serif;
+}
+
+.dono-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(142, 68, 173, 0.4);
+}
+
+.dono-icon {
+    font-size: 1.8rem;
+}
+
+.dono-text {
+    font-weight: 600;
+}
+
+.dono-badge {
+    background: #f1c40f;
+    color: #2c3e50;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Dono Modal */
+.dono-modal-content {
+    max-width: 600px !important;
+}
+
+.dono-modal-header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.dono-modal-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.dono-modal-title {
+    font-family: 'Playfair Display', serif;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.dono-modal-subtitle {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.dono-modal-body {
+    padding: 25px;
+}
+
+.dono-section-title {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #c9a961;
+}
+
+/* Dono Presets */
+.dono-presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.dono-preset {
+    background: white;
+    border: 2px solid #dee2e6;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Lato', sans-serif;
+}
+
+.dono-preset:hover {
+    border-color: #c9a961;
+    background: #f8f9fa;
+}
+
+.dono-preset.selected {
+    background: #c9a961;
+    color: white;
+    border-color: #c9a961;
+}
+
+.dono-custom-amount {
+    margin-top: 15px;
+}
+
+/* Dono Total */
+.dono-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.dono-total span:last-child {
+    color: #c9a961;
+    font-size: 1.4rem;
+}
+
+.dono-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.dono-buttons .btn {
+    flex: 1;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+/* Dono Code in Checkout */
+.dono-code-group {
+    margin: 15px 0;
+}
+
+.dono-code-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.dono-code-input-group input {
+    flex: 1;
+}
+
+.btn-validate {
+    background: #3498db;
+    color: white;
+    padding: 0 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Lato', sans-serif;
+}
+
+.btn-validate:hover {
+    background: #2980b9;
+}
+
+.dono-validation-result {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.dono-validation-result.valid {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.dono-validation-result.invalid {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.dono-validation-result.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Toast Container */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    background: white;
+    color: #2c3e50;
+    padding: 15px 25px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease-out;
+    border-left: 4px solid;
+    pointer-events: auto;
+    min-width: 300px;
+    max-width: 450px;
+}
+
+.toast.success {
+    border-left-color: #27ae60;
+}
+
+.toast.success .toast-icon {
+    color: #27ae60;
+}
+
+.toast.error {
+    border-left-color: #e74c3c;
+}
+
+.toast.error .toast-icon {
+    color: #e74c3c;
+}
+
+.toast.info {
+    border-left-color: #3498db;
+}
+
+.toast.info .toast-icon {
+    color: #3498db;
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+}
+
+.toast-message {
+    flex: 1;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #95a5a6;
+    padding: 0 5px;
+    font-family: 'Lato', sans-serif;
+}
+
+.toast-close:hover {
+    color: #2c3e50;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMOLARTE by Helena Caballero - Cerámicas Artesanales Italianas</title>
+    <meta name="description" content="Catálogo de cerámicas artesanales importadas de Italia. 104 productos únicos en 10 colecciones exclusivas.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/checkout.css">
+    <link rel="stylesheet" href="css/validation-styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <img src="images/branding/logo-hc.jpg" alt="Helena Caballero" class="logo-hc">
+        <img src="images/branding/logo-imolarte.png" alt="Imolarte" class="logo-imolarte">
+    </header>
+
+    <!-- Dono Mode Button (NEW) -->
+    <div class="dono-container">
+        <button class="dono-button" id="donoButton">
+            <span class="dono-icon">🎁</span>
+            <span class="dono-text">Modo Dono - Regala crédito</span>
+            <span class="dono-badge">Nuevo</span>
+        </button>
+    </div>
+
+    <!-- Floating Cart Button -->
+    <button class="cart-float" id="cartButton" aria-label="Ver carrito">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="products-grid" id="productsGrid">
+            <!-- Products loaded by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Dono Modal (NEW) -->
+    <div class="modal" id="donoModal" role="dialog" aria-modal="true">
+        <div class="modal-content dono-modal-content">
+            <button class="close-btn" id="closeDonoModal" aria-label="Cerrar">×</button>
+            <div class="dono-modal-header">
+                <span class="dono-modal-icon">🎁</span>
+                <h2 class="dono-modal-title">Regala crédito IMOLARTE</h2>
+                <p class="dono-modal-subtitle">Compra crédito para regalar a quien quieras</p>
+            </div>
+            <div class="dono-modal-body" id="donoModalBody">
+                <!-- Recipient Info -->
+                <div class="dono-recipient-section">
+                    <h3 class="dono-section-title">📋 Datos del beneficiario</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label required">Nombre del beneficiario</label>
+                            <input type="text" class="form-input" id="donoRecipientName" placeholder="Nombre completo">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email (opcional)</label>
+                            <input type="email" class="form-input" id="donoRecipientEmail" placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">WhatsApp (opcional)</label>
+                            <input type="tel" class="form-input" id="donoRecipientPhone" placeholder="3001234567">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dono Amount Selection -->
+                <div class="dono-amount-section">
+                    <h3 class="dono-section-title">💰 Valor del crédito</h3>
+                    <div class="dono-presets">
+                        <button class="dono-preset" data-amount="100000">$100.000</button>
+                        <button class="dono-preset" data-amount="200000">$200.000</button>
+                        <button class="dono-preset" data-amount="300000">$300.000</button>
+                        <button class="dono-preset" data-amount="500000">$500.000</button>
+                        <button class="dono-preset" data-amount="1000000">$1.000.000</button>
+                    </div>
+                    <div class="dono-custom-amount">
+                        <label class="form-label">Valor personalizado</label>
+                        <input type="number" class="form-input" id="donoCustomAmount" placeholder="Ingresa el valor" min="50000" step="10000">
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <div class="dono-message-section">
+                    <h3 class="dono-section-title">💬 Mensaje (opcional)</h3>
+                    <textarea class="form-input" id="donoMessage" rows="3" placeholder="Escribe un mensaje para el beneficiario..."></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="dono-actions">
+                    <div class="dono-total">
+                        <span>Total a pagar:</span>
+                        <span id="donoTotalAmount">$0</span>
+                    </div>
+                    <div class="dono-buttons">
+                        <button class="btn btn-secondary" id="cancelDono">Cancelar</button>
+                        <button class="btn btn-primary" id="addDonoToCart">
+                            <span>🛒</span> Agregar al Carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal" id="productModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal" aria-label="Cerrar">×</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Cart Page -->
+    <div class="cart-page" id="cartPage">
+        <div class="cart-container">
+            <div class="cart-header">
+                <h1 class="cart-title">Mi Pedido</h1>
+                <button class="close-cart" id="closeCart">← Seguir Comprando</button>
+            </div>
+            <div class="cart-items" id="cartItems"></div>
+            <div id="cartSummary"></div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="checkout-modal" id="checkoutModal">
+        <div class="checkout-content">
+            <div class="checkout-header">
+                <h2 class="checkout-title">Finalizar Pedido</h2>
+                <button class="close-checkout" id="closeCheckout">×</button>
+            </div>
+            <div class="checkout-body">
+                <form id="checkoutForm">
+                    <!-- Personal Info -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">📋 Datos Personales</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label required">Nombre(s)</label>
+                                <input type="text" class="form-input" id="firstName" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" aria-describedby="firstName-error">
+                                <span id="firstName-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Apellido(s)</label>
+                                <input type="text" class="form-input" id="lastName" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" aria-describedby="lastName-error">
+                                <span id="lastName-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Tipo de Documento</label>
+                                <select class="form-input" id="docType" required aria-describedby="docType-error">
+                                    <option value="">Selecciona</option>
+                                    <option value="CC">CC - Cédula de Ciudadanía</option>
+                                    <option value="CE">CE - Cédula de Extranjería</option>
+                                </select>
+                                <span id="docType-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Número de Identificación</label>
+                                <input type="text" class="form-input" id="docNumber" required pattern="[0-9]+" aria-describedby="docNumber-error">
+                                <span id="docNumber-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Fecha de Cumpleaños</label>
+                                <div class="birthday-group">
+                                    <select class="form-input" id="birthdayDay" required aria-describedby="birthdayDay-error">
+                                        <option value="">Día</option>
+                                    </select>
+                                    <select class="form-input" id="birthdayMonth" required>
+                                        <option value="">Mes</option>
+                                    </select>
+                                </div>
+                                <span id="birthdayDay-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required">Email</label>
+                                <input type="email" class="form-input" id="email" required aria-describedby="email-error">
+                                <span id="email-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label required">Celular / WhatsApp</label>
+                                <div class="phone-group">
+                                    <select class="form-input phone-prefix" id="countryCode" required>
+                                        <option value="+57">🇨🇴 +57</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+52">🇲🇽 +52</option>
+                                    </select>
+                                    <input type="tel" class="form-input phone-number" id="phone" required pattern="[0-9]{10}" placeholder="3001234567" aria-describedby="phone-error">
+                                </div>
+                                <span id="phone-error" class="error-message hidden" aria-live="polite"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dono Code Field (NEW) -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">🎁 ¿Tienes un código Dono?</h3>
+                        <div class="dono-code-group">
+                            <div class="dono-code-input-group">
+                                <input type="text" class="form-input" id="donoCode" placeholder="Ej: DNO-ABC123XYZ" maxlength="14">
+                                <button type="button" class="btn btn-validate" id="validateDonoBtn">Validar</button>
+                            </div>
+                            <div id="donoValidationResult" class="dono-validation-result"></div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Method -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">🚚 Método de Entrega</h3>
+                        <div class="delivery-options" id="deliveryOptionsContainer">
+                            <div class="delivery-option" data-delivery="pickup">
+                                <input type="radio" name="delivery" value="pickup" id="deliveryPickup" required>
+                                <div class="delivery-info">
+                                    <div class="delivery-title">🏪 Retiro en Almacén</div>
+                                    <div class="delivery-subtitle">Sin costo adicional</div>
+                                </div>
+                            </div>
+                            <div class="delivery-option" data-delivery="home">
+                                <input type="radio" name="delivery" value="home" id="deliveryHome">
+                                <div class="delivery-info">
+                                    <div class="delivery-title">🚚 Entrega a Domicilio</div>
+                                    <div class="delivery-subtitle">Costo según ubicación</div>
+                                </div>
+                            </div>
+                        </div>
+                        <span id="deliveryOptions-error" class="error-message hidden" aria-live="polite"></span>
+
+                        <!-- Address Fields -->
+                        <div class="address-fields" id="addressFields">
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label class="form-label required">Dirección Completa</label>
+                                    <input type="text" class="form-input" id="address" placeholder="Calle 123 #45-67">
+                                    <div id="suggestions" class="suggestions"></div>
+                                    <span class="error-message">Campo requerido</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label required">Barrio</label>
+                                    <input type="text" class="form-input" id="neighborhood">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label required">Ciudad</label>
+                                    <input type="text" class="form-input" id="city" value="Bogotá">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label">Notas / Indicaciones</label>
+                                    <textarea class="form-input" id="notes" rows="3" placeholder="Ej: Apartamento 302, timbre rojo..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="checkout-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="summarySubtotal">$0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Envío:</span>
+                            <span id="summaryShipping">A calcular</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total:</span>
+                            <span id="summaryTotal">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input" id="termsAccept" required>
+                        <label class="checkbox-label" for="termsAccept">
+                            He leído y acepto los <a href="#" id="showTerms">Términos y Condiciones</a> *
+                        </label>
+                        <span id="termsAccept-error" class="error-message hidden" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Tratamiento de Datos -->
+                    <div class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input" id="cesionAccept" required>
+                        <label class="checkbox-label" for="cesionAccept">
+                            Autorizo el <a href="#" id="showCesion">tratamiento de datos personales (Ley 1581 de 2012)</a> *
+                        </label>
+                        <span id="cesionAccept-error" class="error-message hidden" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="checkout-actions-new">
+                        <!-- Opción 1: Pagar Anticipo 60% -->
+                        <div class="payment-option">
+                            <div class="payment-header">
+                                <h4 class="payment-title">💰 Pagar Anticipo (60%)</h4>
+                                <p class="payment-desc">Paga el 60% ahora, el resto al recibir</p>
+                            </div>
+                            <div class="payment-amount" id="anticipoAmount">
+                                <span class="amount-label">Monto:</span>
+                                <span class="amount-value">$0</span>
+                            </div>
+                            <button type="button" class="btn btn-payment" id="btnAnticipo">
+                                <span>💳</span> Pagar Anticipo
+                            </button>
+                        </div>
+
+                        <!-- Opción 2: Pagar 100% Anticipado -->
+                        <div class="payment-option payment-recommended">
+                            <div class="payment-badge">🎉 Ahorra 3%</div>
+                            <div class="payment-header">
+                                <h4 class="payment-title">✨ Pagar 100% Anticipado</h4>
+                                <p class="payment-desc">Paga todo ahora y obtén 3% de descuento</p>
+                            </div>
+                            <div class="payment-savings" id="savingsAmount">
+                                <span class="savings-label">Ahorras:</span>
+                                <span class="savings-value">$0</span>
+                            </div>
+                            <div class="payment-amount" id="completeAmount">
+                                <span class="amount-label">Total a pagar:</span>
+                                <span class="amount-value">$0</span>
+                            </div>
+                            <button type="button" class="btn btn-payment btn-recommended" id="btnPagoCompleto">
+                                <span>💎</span> Pagar 100% Ahora
+                            </button>
+                        </div>
+
+                        <!-- Separador -->
+                        <div class="payment-divider">
+                            <span>o</span>
+                        </div>
+
+                        <!-- Opción 3: Solo enviar por WhatsApp -->
+                        <div class="payment-option payment-whatsapp">
+                            <div class="payment-header">
+                                <h4 class="payment-title">📱 Enviar por WhatsApp</h4>
+                                <p class="payment-desc">Envía tu pedido y coordina el pago después</p>
+                            </div>
+                            <button type="button" class="btn btn-whatsapp" id="btnWhatsApp">
+                                <span>📱</span> Enviar Pedido
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container (NEW) -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/catalog-data.js"></script>
+    <script src="js/image-config.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/checkout.js"></script>
+    <script src="js/google-places.js"></script>
+    <script src="js/google-sheets-integration.js"></script>
+    
+    <!-- Checkout modules -->
+    <script src="js/checkout-validation.js"></script>
+    <script src="js/checkout-payment.js"></script>
+    <script src="js/checkout-whatsapp.js"></script>
+    
+    <!-- NEW Modules -->
+    <script src="js/toast.js"></script>
+    <script src="js/dono.js"></script>
+    <script src="js/dono-checkout.js"></script>
+    
+    <!-- Wompi widget -->
+    <script src="https://checkout.wompi.co/widget.js"></script>
+    <script>
+        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+            key: "AIzaSyDd1f-rpDSztTvxz07eaCDNCa8rjNG_Jb4",
+            v: "weekly"
+        });
+    </script>
+</body>
+</html>

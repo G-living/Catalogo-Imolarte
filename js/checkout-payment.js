@@ -1,10 +1,10 @@
-// checkout-payment.js
-// IMOLARTE - Wompi Payment Integration
-// Handles 60% deposit and 100% full payment flows
-// Version: 1.0
+/**
+ * checkout-payment.js - IMOLARTE Wompi Payment Integration
+ * Handles 60% deposit and 100% full payment flows with Dono support
+ * Version: 2.0 - Added auto-redirect and Dono integration
+ */
 
 // ===== CONFIGURATION =====
-
 const WOMPI_CONFIG = {
   publicKey: 'pub_test_rT7K8rzYnk2Ec8Lv25tRL3JIof6b6Lwp',
   signatureGeneratorUrl: 'https://imolarte-signature-generator.filippo-massara2016.workers.dev',
@@ -16,19 +16,23 @@ const SHEETS_CONFIG = {
 };
 
 const PAYMENT_CONFIG = {
-  depositPercentage: 0.60, // 60%
-  discountPercentage: 0.03  // 3%
+  depositPercentage: 0.60,
+  discountPercentage: 0.03
 };
 
 // ===== PAYMENT FLOW: ANTICIPO 60% =====
-
 async function handlePagarAnticipo() {
   console.log('💳 Iniciando pago anticipo 60%...');
   
-  // 1. Validate form (handled by checkout-validation.js)
+  // Check if Dono covers full amount
+  if (window.donoToApply && window.donoToApply.amount >= getCartTotal()) {
+    return processDonoOnlyPayment('ANTICIPO_60');
+  }
+  
+  // 1. Validate form
   if (typeof window.validateCheckoutForm !== 'function') {
     console.error('checkout-validation.js no está cargado');
-    alert('Error: Sistema de validación no disponible');
+    showToast('Error: Sistema de validación no disponible', 'error');
     return;
   }
   
@@ -52,7 +56,7 @@ async function handlePagarAnticipo() {
   showLoadingOverlay('Registrando pedido...');
   
   try {
-    // 4. Register in Google Sheets
+    // 4. Register in Google Sheets (with Dono if applied)
     const pedidoId = await registerOrderInSheets('ANTICIPO_60', subtotal, 0, 0, subtotal);
     
     if (!pedidoId) {
@@ -88,24 +92,27 @@ async function handlePagarAnticipo() {
     console.error('❌ Error en pago anticipo:', error);
     hideLoadingOverlay();
     
-    // Check if it's a Sheets failure
     if (error.message.includes('Google Sheets')) {
       showServiceUnavailableError();
     } else {
-      alert('Error al procesar el pago. Por favor intenta nuevamente.');
+      showToast('Error al procesar el pago. Por favor intenta nuevamente.', 'error');
     }
   }
 }
 
 // ===== PAYMENT FLOW: PAGO COMPLETO 100% =====
-
 async function handlePagarCompleto() {
   console.log('💎 Iniciando pago completo 100%...');
+  
+  // Check if Dono covers full amount
+  if (window.donoToApply && window.donoToApply.amount >= getCartTotal()) {
+    return processDonoOnlyPayment('PAGO_100');
+  }
   
   // 1. Validate form
   if (typeof window.validateCheckoutForm !== 'function') {
     console.error('checkout-validation.js no está cargado');
-    alert('Error: Sistema de validación no disponible');
+    showToast('Error: Sistema de validación no disponible', 'error');
     return;
   }
   
@@ -131,7 +138,7 @@ async function handlePagarCompleto() {
   showLoadingOverlay('Registrando pedido...');
   
   try {
-    // 4. Register in Google Sheets
+    // 4. Register in Google Sheets (with Dono if applied)
     const pedidoId = await registerOrderInSheets(
       'PAGO_100', 
       subtotal, 
@@ -176,14 +183,82 @@ async function handlePagarCompleto() {
     if (error.message.includes('Google Sheets')) {
       showServiceUnavailableError();
     } else {
-      alert('Error al procesar el pago. Por favor intenta nuevamente.');
+      showToast('Error al procesar el pago. Por favor intenta nuevamente.', 'error');
     }
   }
 }
 
-// ===== GOOGLE SHEETS INTEGRATION =====
+// ===== DONO-ONLY PAYMENT (no Wompi) =====
+async function processDonoOnlyPayment(tipoPago) {
+  console.log('🎉 Procesando pago solo con Dono...');
+  
+  // 1. Validate form
+  if (typeof window.validateCheckoutForm !== 'function') {
+    console.error('checkout-validation.js no está cargado');
+    showToast('Error: Sistema de validación no disponible', 'error');
+    return;
+  }
+  
+  const isValid = window.validateCheckoutForm();
+  if (!isValid) return;
+  
+  // 2. Show loading
+  showLoadingOverlay('Procesando pago con Dono...');
+  
+  try {
+    const subtotal = getCartTotal();
+    const donoAmount = window.donoToApply.amount;
+    
+    // 3. Register in Sheets with Dono info
+    const pedidoId = await registerOrderInSheets(
+      tipoPago,
+      subtotal,
+      0,
+      0,
+      0, // Total 0 because Dono covers it
+      window.donoToApply.code,
+      donoAmount,
+      'DONO_FULL'
+    );
+    
+    if (!pedidoId) {
+      throw new Error('No se pudo registrar el pedido');
+    }
+    
+    console.log(`✅ Pedido registrado con Dono: ${pedidoId}`);
+    
+    // 4. Show success
+    hideLoadingOverlay();
+    showToast('✅ ¡Pago exitoso con Dono! Redirigiendo...', 'success');
+    
+    // 5. Clear cart
+    if (window.cart) {
+      window.cart = [];
+      if (typeof window.updateCartUI === 'function') {
+        window.updateCartUI();
+      }
+    }
+    
+    // 6. Close modals
+    closeCheckoutModal();
+    if (typeof window.hideCartPage === 'function') {
+      window.hideCartPage();
+    }
+    
+    // 7. AUTO-REDIRECT after 3 seconds
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error en pago Dono:', error);
+    hideLoadingOverlay();
+    showToast('Error al procesar el pago', 'error');
+  }
+}
 
-async function registerOrderInSheets(tipoPago, subtotal, descuentoPorcentaje, descuentoMonto, totalFinal) {
+// ===== GOOGLE SHEETS INTEGRATION =====
+async function registerOrderInSheets(tipoPago, subtotal, descuentoPorcentaje, descuentoMonto, totalFinal, donoCode = null, donoAmount = null, paymentType = 'WOMPI') {
   try {
     console.log('📊 Registrando en Google Sheets...');
     
@@ -218,9 +293,12 @@ async function registerOrderInSheets(tipoPago, subtotal, descuentoPorcentaje, de
       
       // Pago
       tipoPago: tipoPago,
-      notasInternas: tipoPago === 'PAGO_100' 
-        ? 'Pago completo -3%' 
-        : 'Anticipo 60%'
+      notasInternas: tipoPago === 'PAGO_100' ? 'Pago completo -3%' : 'Anticipo 60%',
+      
+      // Dono (if applied)
+      donoCode: donoCode || '',
+      donoAmount: donoAmount || 0,
+      paymentType: paymentType
     };
     
     // Send to Sheets
@@ -255,7 +333,6 @@ async function registerOrderInSheets(tipoPago, subtotal, descuentoPorcentaje, de
 }
 
 // ===== SIGNATURE GENERATION =====
-
 async function getPaymentSignature(reference, amountInCents) {
   try {
     console.log('🔐 Solicitando firma...');
@@ -292,7 +369,6 @@ async function getPaymentSignature(reference, amountInCents) {
 }
 
 // ===== WOMPI WIDGET =====
-
 async function openWompiWidget(config) {
   console.log('🎨 Abriendo widget de Wompi...');
   
@@ -311,7 +387,7 @@ async function openWompiWidget(config) {
     amountInCents: config.amountInCents,
     reference: config.reference,
     publicKey: WOMPI_CONFIG.publicKey,
-    redirectUrl: window.location.origin + '/payment-success.html',
+    redirectUrl: window.location.origin + '/',
     signature: {
       integrity: config.signature
     },
@@ -331,28 +407,40 @@ async function openWompiWidget(config) {
       console.log('🎯 Wompi result:', result);
       
       if (result.transaction) {
-        console.log('✅ Transacción completada:', result.transaction.id);
+        const transaction = result.transaction;
+        console.log('✅ Transacción completada:', transaction.id);
         
-        // Clear cart
-        if (window.cart) {
-          window.cart = [];
-          if (typeof window.updateCartUI === 'function') {
-            window.updateCartUI();
+        if (transaction.status === 'APPROVED') {
+          // Show success toast
+          showToast('✅ ¡Pago exitoso! Redirigiendo al catálogo...', 'success');
+          
+          // Clear cart
+          if (window.cart) {
+            window.cart = [];
+            if (typeof window.updateCartUI === 'function') {
+              window.updateCartUI();
+            }
           }
+          
+          // AUTO-REDIRECT after 3 seconds
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 3000);
+          
+        } else if (transaction.status === 'DECLINED') {
+          showToast('❌ El pago fue rechazado. Intenta con otro método.', 'error');
+        } else {
+          showToast('ℹ️ Estado: ' + transaction.status, 'info');
         }
-        
-        // Show success
-        showSuccessToast('¡Pago procesado exitosamente!');
       }
     });
   } catch (error) {
     console.error('❌ Error abriendo widget:', error);
-    alert('Error al abrir la pasarela de pago. Por favor intenta nuevamente.');
+    showToast('Error al abrir la pasarela de pago', 'error');
   }
 }
 
 // ===== UTILITY FUNCTIONS =====
-
 function collectCustomerData() {
   const countryCode = document.getElementById('countryCode').value;
   const phone = document.getElementById('phone').value;
@@ -381,7 +469,6 @@ function formatPrice(price) {
 }
 
 // ===== UI HELPERS =====
-
 function showLoadingOverlay(message) {
   let overlay = document.getElementById('payment-loading-overlay');
   
@@ -457,31 +544,7 @@ function hideLoadingOverlay() {
   }
 }
 
-function showSuccessToast(message) {
-  const toast = document.createElement('div');
-  toast.textContent = message;
-  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #27ae60;
-    color: white;
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 100000;
-    font-family: 'Lato', sans-serif;
-  `;
-  
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.remove();
-  }, 4000);
-}
-
 function showServiceUnavailableError() {
-  // Create full-page overlay
   const overlay = document.createElement('div');
   overlay.innerHTML = `
     <div style="
@@ -524,14 +587,18 @@ function showServiceUnavailableError() {
   `;
   
   document.body.appendChild(overlay);
-  
-  // Disable page interactions
   document.body.style.pointerEvents = 'none';
   overlay.style.pointerEvents = 'all';
 }
 
-// ===== INITIALIZATION =====
+function closeCheckoutModal() {
+  const modal = document.getElementById('checkoutModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
 
+// ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💳 checkout-payment.js cargado');
   
@@ -540,30 +607,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnPagoCompleto = document.getElementById('btnPagoCompleto');
   
   if (btnAnticipo) {
-    btnAnticipo.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      handlePagarAnticipo();
-    });
+    btnAnticipo.addEventListener('click', handlePagarAnticipo);
     console.log('✅ Botón Anticipo conectado');
-  } else {
-    console.warn('⚠️ btnAnticipo no encontrado');
   }
   
   if (btnPagoCompleto) {
-    btnPagoCompleto.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      handlePagarCompleto();
-    });
+    btnPagoCompleto.addEventListener('click', handlePagarCompleto);
     console.log('✅ Botón Pago Completo conectado');
-  } else {
-    console.warn('⚠️ btnPagoCompleto no encontrado');
   }
 });
 
-// Export for other modules
+// Export
 window.handlePagarAnticipo = handlePagarAnticipo;
 window.handlePagarCompleto = handlePagarCompleto;
 
-console.log('📦 checkout-payment.js loaded v1.0');
+console.log('📦 checkout-payment.js loaded v2.0');

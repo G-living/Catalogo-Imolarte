@@ -2,28 +2,44 @@
  * ================================================================
  * IMOLARTE - INTEGRACIÓN GOOGLE SHEETS
  * ================================================================
- * Este archivo se carga en el catálogo web (GitHub Pages)
- * Envía pedidos a Google Sheets usando URLSearchParams
- * Versión: 4.0 - Limpia y optimizada
+ * Versión: 5.0 - Con debounce para evitar duplicados
  * ================================================================
  */
 
 // ===== CONFIGURACIÓN =====
-
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw_qPay6DfCh-xxeosxmD-tuEINf9UIPT_i_0sNg5b6GbD-zZc93ZsaxjrAoqkn_m1u/exec';
-
 const PORCENTAJE_ANTICIPO = 60;
 const DESCUENTO_PAGO_COMPLETO = 3;
+
+// ===== DEBOUNCE CONTROL =====
+let isSubmitting = false;
+let lastSubmitTime = 0;
+const SUBMIT_COOLDOWN = 5000; // 5 segundos
 
 // ===== ENVÍO A GOOGLE SHEETS =====
 
 /**
- * Envía pedido a Google Sheets
- * Usa URLSearchParams (application/x-www-form-urlencoded)
- * NO genera preflight CORS
+ * Envía pedido a Google Sheets con debounce
  */
 async function enviarPedidoASheets(datosPedido) {
+  // Verificar si ya hay un envío en curso
+  if (isSubmitting) {
+    const timeSinceLastSubmit = Date.now() - lastSubmitTime;
+    if (timeSinceLastSubmit < SUBMIT_COOLDOWN) {
+      console.log('⏳ Envío bloqueado por debounce');
+      showToast('Procesando solicitud anterior...', 'info');
+      return {
+        success: false,
+        error: 'DEBOUNCE_ACTIVE',
+        pedidoId: null
+      };
+    }
+  }
+
   try {
+    isSubmitting = true;
+    lastSubmitTime = Date.now();
+    
     console.log('📊 Enviando pedido a Google Sheets...');
     
     // Crear URLSearchParams
@@ -60,6 +76,13 @@ async function enviarPedidoASheets(datosPedido) {
     // Pago
     params.append('tipoPago', datosPedido.tipoPago);
     params.append('notasInternas', datosPedido.notasInternas || '');
+    
+    // Dono (si aplica)
+    if (datosPedido.donoCode) {
+      params.append('donoCode', datosPedido.donoCode);
+      params.append('donoAmount', datosPedido.donoAmount || 0);
+      params.append('paymentType', datosPedido.paymentType || 'WOMPI');
+    }
     
     console.log('🔄 Enviando con URLSearchParams...');
     
@@ -101,6 +124,11 @@ async function enviarPedidoASheets(datosPedido) {
       error: error.message,
       pedidoId: null
     };
+  } finally {
+    // Liberar después de 5 segundos
+    setTimeout(() => {
+      isSubmitting = false;
+    }, SUBMIT_COOLDOWN);
   }
 }
 
@@ -142,14 +170,33 @@ function recopilarDatosPedido(tipoPago = 'ANTICIPO_60') {
     totalFinal = subtotal - descuentoMonto;
   }
   
+  // Aplicar Dono si existe
+  let donoCode = '';
+  let donoAmount = 0;
+  let paymentType = 'WOMPI';
+  
+  if (window.donoToApply && window.donoToApply.valid) {
+    donoCode = window.donoToApply.code;
+    donoAmount = Math.min(window.donoToApply.balance, totalFinal);
+    totalFinal = Math.max(0, totalFinal - donoAmount);
+    
+    if (totalFinal === 0) {
+      paymentType = 'DONO_FULL';
+    } else {
+      paymentType = 'DONO_PARTIAL';
+    }
+  }
+  
   // Items
   const items = cart.map(item => ({
-    producto: item.description,
+    producto: item.productName || item.description,
     coleccion: item.collection,
     codigo: item.code,
     cantidad: item.quantity,
     precio: item.price,
-    subtotal: item.price * item.quantity
+    subtotal: item.price * item.quantity,
+    isDono: item.isDono || false,
+    donoCode: item.donoCode || null
   }));
   
   return {
@@ -176,7 +223,10 @@ function recopilarDatosPedido(tipoPago = 'ANTICIPO_60') {
     metodoEntrega: esDomicilio ? 'DOMICILIO' : 'RETIRO',
     notasEntrega: notasEntrega,
     tipoPago: tipoPago,
-    notasInternas: `Opción: ${tipoPago === 'PAGO_100' ? 'Pago completo -3%' : 'Anticipo 60%'}`
+    notasInternas: `Opción: ${tipoPago === 'PAGO_100' ? 'Pago completo -3%' : 'Anticipo 60%'}`,
+    donoCode: donoCode,
+    donoAmount: donoAmount,
+    paymentType: paymentType
   };
 }
 
@@ -193,6 +243,12 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
     return;
   }
   
+  // Verificar si ya está enviando
+  if (isSubmitting) {
+    showToast('Ya hay un envío en proceso...', 'info');
+    return;
+  }
+  
   // Recopilar datos
   const datosPedido = recopilarDatosPedido(tipoPago);
   
@@ -206,28 +262,46 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
     if (resultado.success && resultado.pedidoId) {
       // ID real obtenido
       console.log('🆔 ID real:', resultado.pedidoId);
-      enviarWhatsApp(datosPedido, resultado.pedidoId);
-      mostrarNotificacion(`✅ Pedido ${resultado.pedidoId} registrado`);
+      
+      if (tipoPago === 'WHATSAPP_ONLY') {
+        enviarWhatsApp(datosPedido, resultado.pedidoId);
+        showToast(`✅ Wishlist ${resultado.pedidoId} registrada`, 'success');
+      } else {
+        // Para pagos con Wompi, se maneja en checkout-payment.js
+        showToast(`✅ Pedido ${resultado.pedidoId} registrado`, 'success');
+      }
+      
+      // Limpiar carrito y Dono
+      setTimeout(() => {
+        cart = [];
+        window.donoToApply = null;
+        updateCartUI();
+        closeCheckoutModal();
+      }, 1500);
+      
     } else {
       // Falló - usar ID temporal
       console.warn('⚠️ Sin ID, usando temporal');
       const idTemporal = generarIdTemporal();
-      enviarWhatsApp(datosPedido, idTemporal);
-      mostrarNotificacion('⚠️ Pedido enviado - verificar Sheets');
+      
+      if (tipoPago === 'WHATSAPP_ONLY') {
+        enviarWhatsApp(datosPedido, idTemporal);
+        showToast('⚠️ Wishlist enviada - verificar Sheets', 'warning');
+      } else {
+        showToast('⚠️ Error al registrar - intenta de nuevo', 'error');
+      }
     }
-    
-    // Limpiar carrito
-    setTimeout(() => {
-      cart = [];
-      updateCartUI();
-      closeCheckoutModal();
-    }, 1500);
     
   } catch (error) {
     console.error('Error:', error);
     const idTemporal = generarIdTemporal();
-    enviarWhatsApp(datosPedido, idTemporal);
-    mostrarNotificacion('⚠️ Error - pedido enviado por WhatsApp');
+    
+    if (tipoPago === 'WHATSAPP_ONLY') {
+      enviarWhatsApp(datosPedido, idTemporal);
+      showToast('⚠️ Wishlist enviada por WhatsApp', 'warning');
+    } else {
+      showToast('❌ Error al procesar pedido', 'error');
+    }
   } finally {
     ocultarLoading();
   }
@@ -239,11 +313,18 @@ async function sendToWhatsAppConSheets(tipoPago = 'ANTICIPO_60') {
  * Genera mensaje y abre WhatsApp
  */
 function enviarWhatsApp(datosPedido, pedidoId) {
-  const { cliente, items, subtotal, descuentoMonto, totalFinal, metodoEntrega, tipoPago } = datosPedido;
+  const { cliente, items, subtotal, descuentoMonto, totalFinal, metodoEntrega, tipoPago, donoCode, donoAmount } = datosPedido;
   
   let mensaje = '🛒 *NUEVO PEDIDO - IMOLARTE*\n\n';
   mensaje += `🆔 *ID Pedido:* ${pedidoId}\n`;
   mensaje += `📅 Fecha: ${new Date().toLocaleDateString('es-CO')}\n\n`;
+  
+  // Dono info si aplica
+  if (donoCode && donoAmount > 0) {
+    mensaje += `🎁 *DONO APLICADO*\n`;
+    mensaje += `Código: ${donoCode}\n`;
+    mensaje += `Monto: ${formatPrice(donoAmount)}\n\n`;
+  }
   
   mensaje += '👤 *CLIENTE*\n';
   mensaje += `📝 ${cliente.tipoDocumento}: ${cliente.numeroDocumento}\n`;
@@ -256,10 +337,17 @@ function enviarWhatsApp(datosPedido, pedidoId) {
   mensaje += '━━━━━━━━━━━━━━━━━━\n';
   
   items.forEach((item, i) => {
-    mensaje += `${i + 1}. ${item.producto}\n`;
-    mensaje += `   ${item.coleccion} - ${item.codigo}\n`;
-    mensaje += `   ${item.cantidad} × ${formatPrice(item.precio)}\n`;
-    mensaje += `   💰 ${formatPrice(item.subtotal)}\n\n`;
+    if (item.isDono) {
+      mensaje += `${i + 1}. 🎁 *CRÉDITO DONO*\n`;
+      mensaje += `   Para: ${item.recipientName || 'Beneficiario'}\n`;
+      mensaje += `   Código: ${item.donoCode}\n`;
+      mensaje += `   💰 ${formatPrice(item.subtotal)}\n\n`;
+    } else {
+      mensaje += `${i + 1}. ${item.producto}\n`;
+      mensaje += `   ${item.coleccion} - ${item.codigo}\n`;
+      mensaje += `   ${item.cantidad} × ${formatPrice(item.precio)}\n`;
+      mensaje += `   💰 ${formatPrice(item.subtotal)}\n\n`;
+    }
   });
   
   mensaje += '━━━━━━━━━━━━━━━━━━\n';
@@ -267,6 +355,10 @@ function enviarWhatsApp(datosPedido, pedidoId) {
   
   if (descuentoMonto > 0) {
     mensaje += `🎉 Descuento (${DESCUENTO_PAGO_COMPLETO}%): -${formatPrice(descuentoMonto)}\n`;
+  }
+  
+  if (donoAmount > 0) {
+    mensaje += `🎁 Dono aplicado: -${formatPrice(donoAmount)}\n`;
   }
   
   mensaje += `💰 *TOTAL: ${formatPrice(totalFinal)}*\n\n`;
@@ -375,35 +467,7 @@ function ocultarLoading() {
   if (loading) loading.remove();
 }
 
-/**
- * Notificación temporal
- */
-function mostrarNotificacion(mensaje, tipo = 'success') {
-  const notif = document.createElement('div');
-  notif.textContent = mensaje;
-  notif.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: ${tipo === 'success' ? '#27ae60' : '#e74c3c'};
-    color: white;
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 100000;
-    font-family: 'Lato', sans-serif;
-  `;
-  
-  document.body.appendChild(notif);
-  
-  setTimeout(() => {
-    notif.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notif.remove(), 300);
-  }, 3000);
-}
-
 // ===== EXPORTAR =====
-
 window.enviarPedidoConSheets = sendToWhatsAppConSheets;
 
-console.log('✅ Integración Google Sheets cargada v4.0');
+console.log('✅ Integración Google Sheets cargada v5.0 con debounce');

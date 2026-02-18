@@ -1,300 +1,432 @@
+// checkout.js - Gestión del checkout, validaciones, Wompi y WhatsApp
+// COMPLETO - Con toast en lugar de alerts
+
+// ===== CONSTANTES =====
+const WOMPI_PUBLIC_KEY = 'pub_test_rT7K8rzYnk2Ec8Lv25tRL3JIof6b6Lwp';
+const WHATSAPP_NUMBER = '573004257367';
+
+// ===== VARIABLES GLOBALES =====
+let checkoutData = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    delivery: 'pickup',
+    address: '',
+    neighborhood: '',
+    city: 'Bogotá',
+    notes: ''
+};
+
+// ===== FUNCIONES PRINCIPALES =====
+
 /**
- * IMOLARTE - Checkout Logic (Phase 1 Final)
- * 
- * Features:
- * ✅ Debounce submit (prevent duplicate orders)
- * ✅ Toast notifications (replace alerts)
- * ✅ Payment method capture (ANTICIPO_60 / PAGO_100 / WHATSAPP_ONLY)
- * ✅ Referral code input + validation
- * ✅ Wompi widget integration (sandbox)
- * ✅ Auto-redirect after successful payment (3 seconds)
- * ✅ Cart integration
- * 
- * Backend: IMOLARTE-sistema (Bound Apps Script)
- * Web App: https://script.google.com/macros/s/AKfycbxaoRuG9JLeSh4EWpcfDg-k68WdjheklfoJ90P7LN3XiQ4B9V2ZTR1eBhxieo-N2Z5rLw/exec
+ * Abre el modal de checkout
+ * @param {string} tipo - 'whatsapp' o 'wompi' para ocultar opciones
  */
-
-// === CONFIG ===
-const APPS_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxaoRuG9JLeSh4EWpcfDg-k68WdjheklfoJ90P7LN3XiQ4B9V2ZTR1eBhxieo-N2Z5rLw/exec';
-const WOMPI_PUBLIC_KEY = 'pub_test_XXXXXXXX'; // ⚠️ Update with your actual Wompi sandbox key
-
-// === STATE ===
-let isSubmitting = false;
-let currentOrderId = null;
-window.orderConfirmed = false;
-
-// === UTILS: Generate Order ID ===
-function generateOrderId() {
-  return 'IMO-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
-}
-
-// === UTILS: Get/Sanitize Client ID ===
-function getCurrentClientId() {
-  let clientId = localStorage.getItem('imolarte_client_id');
-  if (!clientId) {
-    clientId = 'CLI-' + Date.now().toString(36).toUpperCase();
-    localStorage.setItem('imolarte_client_id', clientId);
-  }
-  return clientId;
-}
-
-// === TOAST NOTIFICATIONS (Replace alert()) ===
-function showToast(message, type = 'success', duration = 4000) {
-  // Remove existing toasts
-  document.querySelectorAll('.imolarte-toast').forEach(t => t.remove());
-  
-  const toast = document.createElement('div');
-  toast.className = `imolarte-toast toast-${type}`;
-  toast.innerHTML = `
-    <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
-    <span class="toast-message">${message}</span>
-  `;
-  
-  document.body.appendChild(toast);
-  
-  // Trigger slide-in animation
-  setTimeout(() => toast.classList.add('show'), 100);
-  
-  // Auto-remove after duration
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
-}
-
-// === DEBOUNCE: Prevent duplicate submissions ===
-function debounceSubmit(handler, delay = 2500) {
-  return function(e) {
-    e.preventDefault();
-    
-    if (isSubmitting) {
-      showToast('⏳ Procesando tu pedido... por favor espera.', 'info');
-      return;
+function openCheckoutModal(tipo = null) {
+    if (cart.length === 0) {
+        showToast('Tu carrito está vacío', 'warning');
+        return;
     }
-    
-    isSubmitting = true;
-    
-    // Visual feedback on button
-    const btn = document.getElementById('checkout-submit');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Enviando...';
-    }
-    
-    // Execute handler
-    handler.call(this, e);
-    
-    // Reset state after delay (unless order confirmed)
+
+    // Actualizar resumen
+    updateCheckoutSummary();
+
+    // Mostrar modal
+    const modal = document.getElementById('checkoutModal');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Inicializar Google Places
     setTimeout(() => {
-      if (!window.orderConfirmed) {
-        resetSubmitState();
-      }
-    }, delay);
-  };
+        if (typeof initGooglePlaces === 'function') {
+            initGooglePlaces();
+        }
+    }, 100);
+    
+    // Manejar opciones de pago
+    setTimeout(() => {
+        if (tipo === 'whatsapp') {
+            ocultarOpcionesWompi();
+        } else if (tipo === 'wompi') {
+            ocultarOpcionWhatsApp();
+        } else {
+            mostrarTodasLasOpciones();
+        }
+    }, 400);
+
+    console.log('✅ Modal de checkout abierto - tipo:', tipo);
 }
 
-function resetSubmitState() {
-  isSubmitting = false;
-  const btn = document.getElementById('checkout-submit');
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = 'Confirmar Pedido';
-  }
+/**
+ * Cierra el modal de checkout
+ */
+function closeCheckoutModal() {
+    const modal = document.getElementById('checkoutModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    resetCheckoutForm();
 }
 
-// === MAIN: Handle Checkout Submission ===
-async function handleCheckoutSubmit(e) {
-  try {
-    // Gather form data
-    const name = document.getElementById('client-name')?.value?.trim() || '';
-    const email = document.getElementById('client-email')?.value?.trim() || '';
-    const phone = document.getElementById('client-phone')?.value?.trim() || '';
-    const paymentMethod = document.getElementById('payment-method')?.value || 'ANTICIPO_60';
-    const referralCode = document.getElementById('referral-code-input')?.value?.trim() || '';
+/**
+ * Actualiza el resumen del checkout
+ */
+function updateCheckoutSummary() {
+    const subtotal = getCartTotal();
     
-    // Gather cart data
-    const cartItems = window.cart || [];
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    document.getElementById('summarySubtotal').textContent = formatPrice(subtotal);
+    document.getElementById('summaryTotal').textContent = formatPrice(subtotal);
     
-    // Validation
-    if (!name || !email || !phone) {
-      showToast('❌ Completa todos los campos obligatorios', 'error');
-      resetSubmitState();
-      return;
-    }
-    
-    if (cartItems.length === 0 && paymentMethod !== 'WHATSAPP_ONLY') {
-      showToast('❌ Agrega productos al carrito', 'error');
-      resetSubmitState();
-      return;
-    }
-    
-    // Calculate totals
-    const discountPercent = paymentMethod === 'PAGO_100' ? 3 : 0;
-    const discountAmount = subtotal * (discountPercent / 100);
-    const totalFinal = subtotal - discountAmount;
-    
-    // Generate order ID
-    const orderId = generateOrderId();
-    currentOrderId = orderId;
-    
-    // Build payload (matches PEDIDOS sheet column order)
-    const payload = {
-      ID_Pedido: orderId,
-      Origen: 'WEB',
-      Cliente_ID: getCurrentClientId(),
-      Nombre_Cliente: name,
-      Email: email,
-      Telefono: phone,
-      Items_JSON: JSON.stringify(cartItems),
-      Cantidad_Items: cartItems.length,
-      Subtotal: subtotal,
-      Descuento_Porcentaje: discountPercent,
-      Descuento_Monto: discountAmount,
-      Total_Final: totalFinal,
-      Metodo_Entrega: 'DOMICILIO',
-      Direccion: document.getElementById('client-address')?.value?.trim() || '',
-      Barrio: document.getElementById('client-neighborhood')?.value?.trim() || '',
-      Ciudad: document.getElementById('client-city')?.value?.trim() || 'Bogotá',
-      Notas_Entrega: document.getElementById('delivery-notes')?.value?.trim() || '',
-      Forma_Pago: paymentMethod,
-      Referral_Code: referralCode,
-      Estado_Pago: 'PENDIENTE',
-      Notas_Internas: `Opción: ${paymentMethod === 'ANTICIPO_60' ? 'Anticipo 60%' : paymentMethod === 'PAGO_100' ? 'Pago completo -3%' : 'Coordinar por WhatsApp'}`
-    };
-    
-    // Send to Apps Script Backend
-    const response = await fetch(APPS_SCRIPT_WEBAPP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      showToast('✅ Pedido creado. Iniciando pago...', 'success');
-      
-      // Handle payment flow
-      if (paymentMethod === 'WHATSAPP_ONLY') {
-        showToast('📲 Te contactaremos por WhatsApp para coordinar el pago', 'info', 6000);
-        window.orderConfirmed = true;
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 3000);
-      } else {
-        initWompiWidget(totalFinal, orderId, email, phone);
-      }
-      
-    } else if (result.error === 'DUPLICATE_ID') {
-      showToast('⚠️ Este pedido ya existe. Recargando página...', 'error');
-      setTimeout(() => location.reload(), 2000);
-      
+    const deliveryMethod = document.querySelector('input[name="delivery"]:checked');
+    if (deliveryMethod && deliveryMethod.value === 'home') {
+        document.getElementById('summaryShipping').textContent = 'A calcular';
     } else {
-      showToast('❌ Error: ' + (result.message || 'Intenta nuevamente'), 'error');
-      resetSubmitState();
+        document.getElementById('summaryShipping').textContent = '$0';
     }
-    
-  } catch (err) {
-    console.error('Checkout error:', err);
-    showToast('❌ Error de conexión. Verifica tu internet e intenta nuevamente.', 'error');
-    resetSubmitState();
-  }
 }
 
-// === WOMPI WIDGET INITIALIZATION ===
-function initWompiWidget(amount, reference, email, phone) {
-  if (typeof window.Wompi === 'undefined') {
-    showToast('❌ Widget de pago no cargó. Recarga la página.', 'error');
-    resetSubmitState();
-    return;
-  }
-  
-  try {
-    window.Wompi.open({
-      publicKey: WOMPI_PUBLIC_KEY,
-      currency: 'COP',
-      amountInCents: Math.round(amount * 100),
-      reference: reference,
-      redirectUrl: window.location.href,
-      customerData: {
-        email: email,
-        phone: phone
-      }
+/**
+ * Resetea el formulario de checkout
+ */
+function resetCheckoutForm() {
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        form.reset();
+    }
+    
+    checkoutData = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        delivery: 'pickup',
+        address: '',
+        neighborhood: '',
+        city: 'Bogotá',
+        notes: ''
+    };
+
+    const addressFields = document.getElementById('addressFields');
+    if (addressFields) {
+        addressFields.classList.remove('active');
+    }
+
+    document.querySelectorAll('.form-input.error').forEach(input => {
+        input.classList.remove('error');
     });
-  } catch (err) {
-    console.error('Wompi init error:', err);
-    showToast('❌ No se pudo iniciar el pago. Intenta otro método.', 'error');
-    resetSubmitState();
-  }
 }
 
-// === WOMPI EVENT LISTENERS ===
-function setupWompiEvents() {
-  window.addEventListener('wompi-widget-closed', (e) => {
-    const { status, reference } = e.detail || {};
+// ===== VALIDACIONES =====
+
+/**
+ * Valida el formulario completo
+ */
+function validateCheckoutForm() {
+    let isValid = true;
+    const errors = [];
+
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.classList.remove('error');
+    });
+
+    const firstName = document.getElementById('firstName');
+    if (!firstName.value.trim() || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(firstName.value)) {
+        firstName.classList.add('error');
+        errors.push('Nombre inválido');
+        isValid = false;
+    }
+
+    const lastName = document.getElementById('lastName');
+    if (!lastName.value.trim() || !/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(lastName.value)) {
+        lastName.classList.add('error');
+        errors.push('Apellido inválido');
+        isValid = false;
+    }
+
+    const email = document.getElementById('email');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.value)) {
+        email.classList.add('error');
+        errors.push('Email inválido');
+        isValid = false;
+    }
+
+    const phone = document.getElementById('phone');
+    if (!/^[0-9]{10}$/.test(phone.value)) {
+        phone.classList.add('error');
+        errors.push('Teléfono debe tener 10 dígitos');
+        isValid = false;
+    }
+
+    const deliveryMethod = document.querySelector('input[name="delivery"]:checked');
+    if (!deliveryMethod) {
+        errors.push('Selecciona un método de entrega');
+        isValid = false;
+    }
+
+    if (deliveryMethod && deliveryMethod.value === 'home') {
+        const address = document.getElementById('address');
+        const neighborhood = document.getElementById('neighborhood');
+        const city = document.getElementById('city');
+
+        if (!address.value.trim()) {
+            address.classList.add('error');
+            errors.push('Dirección requerida');
+            isValid = false;
+        }
+
+        if (!neighborhood.value.trim()) {
+            neighborhood.classList.add('error');
+            errors.push('Barrio requerido');
+            isValid = false;
+        }
+
+        if (!city.value.trim()) {
+            city.classList.add('error');
+            errors.push('Ciudad requerida');
+            isValid = false;
+        }
+    }
+
+    const termsAccept = document.getElementById('termsAccept');
+    if (!termsAccept.checked) {
+        errors.push('Debes aceptar los Términos y Condiciones');
+        isValid = false;
+    }
+
+    const cesionAccept = document.getElementById('cesionAccept');
+    if (!cesionAccept.checked) {
+        errors.push('Debes autorizar el tratamiento de datos');
+        isValid = false;
+    }
+
+    if (!isValid) {
+        showToast('Por favor completa todos los campos correctamente:\n' + errors.join('\n'), 'error');
+    }
+
+    return isValid;
+}
+
+/**
+ * Recopila los datos del formulario
+ */
+function collectFormData() {
+    const countryCode = document.getElementById('countryCode').value;
+    const phone = document.getElementById('phone').value;
+    const deliveryMethod = document.querySelector('input[name="delivery"]:checked').value;
+
+    return {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: countryCode + phone,
+        delivery: deliveryMethod,
+        address: document.getElementById('address').value.trim(),
+        neighborhood: document.getElementById('neighborhood').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        notes: document.getElementById('notes').value.trim()
+    };
+}
+
+// ===== WHATSAPP =====
+
+/**
+ * Envía el pedido por WhatsApp
+ */
+function sendToWhatsApp() {
+    if (!validateCheckoutForm()) {
+        return;
+    }
+
+    const formData = collectFormData();
+    const subtotal = getCartTotal();
+
+    let message = '🛒 *PEDIDO IMOLARTE*\n';
+    message += '━━━━━━━━━━━━━━━━━━━\n\n';
+
+    message += '👤 *CLIENTE*\n';
+    message += `${formData.firstName} ${formData.lastName}\n`;
+    message += `📧 ${formData.email}\n`;
+    message += `📱 ${formData.phone}\n\n`;
+
+    if (formData.delivery === 'home') {
+        message += '🚚 *ENTREGA A DOMICILIO*\n';
+        message += `📍 ${formData.address}\n`;
+        message += `🏘️ ${formData.neighborhood}, ${formData.city}\n`;
+        if (formData.notes) {
+            message += `📝 ${formData.notes}\n`;
+        }
+    } else {
+        message += '🏪 *RETIRO EN ALMACÉN*\n';
+    }
+    message += '\n━━━━━━━━━━━━━━━━━━━\n\n';
+
+    message += '📦 *PRODUCTOS*\n\n';
+    cart.forEach((item, index) => {
+        message += `${index + 1}. *${item.productName}*\n`;
+        message += `   ${item.collection} - ${item.code}\n`;
+        message += `   Cant: ${item.quantity} × ${formatPrice(item.price)}\n`;
+        message += `   💰 ${formatPrice(item.price * item.quantity)}\n\n`;
+    });
+
+    message += '━━━━━━━━━━━━━━━━━━━\n';
+    message += `💵 *TOTAL: ${formatPrice(subtotal)}*\n\n`;
+    message += '✅ Términos aceptados\n';
+    message += '👋 ¡Gracias por tu pedido!';
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+
+    window.open(whatsappURL, '_blank');
+
+    setTimeout(() => {
+        cart = [];
+        saveCart();
+        updateCartUI();
+        closeCheckoutModal();
+        closeCartPage();
+        showToast('¡Pedido enviado! Te contactaremos por WhatsApp.', 'success');
+    }, 1000);
+}
+
+// ===== FUNCIONES PARA MOSTRAR/OCULTAR OPCIONES =====
+
+function ocultarOpcionesWompi() {
+    const opcionesWompi = document.querySelectorAll('.payment-option:not(.payment-whatsapp)');
+    const divider = document.querySelector('.payment-divider');
     
-    if (status === 'APPROVED') {
-      window.orderConfirmed = true;
-      showToast('🎉 ¡Pago aprobado! Tu pedido está confirmado. Redirigiendo...', 'success', 5000);
-      
-      // Auto-redirect to index.html after 3 seconds
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 3000);
-      
-    } else if (status === 'REJECTED') {
-      showToast('❌ Pago rechazado. Intenta con otro método de pago.', 'error');
-      resetSubmitState();
-      
-    } else if (status === 'PENDING') {
-      showToast('⏳ Pago pendiente de confirmación. Revisa tu email.', 'info', 8000);
-      resetSubmitState();
+    opcionesWompi.forEach(opcion => {
+        opcion.style.visibility = 'hidden';
+        opcion.style.height = '0';
+        opcion.style.overflow = 'hidden';
+        opcion.style.margin = '0';
+        opcion.style.padding = '0';
+    });
+    
+    if (divider) {
+        divider.style.display = 'none';
     }
-  });
 }
 
-// === INIT: Setup Event Listeners on DOM Ready ===
-document.addEventListener('DOMContentLoaded', () => {
-  // Setup Wompi events
-  setupWompiEvents();
-  
-  // Wrap checkout form submission with debounce
-  const checkoutForm = document.getElementById('checkout-form');
-  if (checkoutForm) {
-    checkoutForm.addEventListener('submit', debounceSubmit(handleCheckoutSubmit));
-  }
-  
-  // Show checkout section if cart has items
-  const cart = window.cart || [];
-  if (cart.length > 0) {
-    const checkoutSection = document.getElementById('checkout-section');
-    if (checkoutSection) {
-      checkoutSection.style.display = 'block';
+function ocultarOpcionWhatsApp() {
+    const opcionWhatsApp = document.querySelector('.payment-whatsapp');
+    const divider = document.querySelector('.payment-divider');
+    
+    if (opcionWhatsApp) {
+        opcionWhatsApp.style.visibility = 'hidden';
+        opcionWhatsApp.style.height = '0';
+        opcionWhatsApp.style.overflow = 'hidden';
+        opcionWhatsApp.style.margin = '0';
+        opcionWhatsApp.style.padding = '0';
     }
-  }
-  
-  // Pre-fill client info if stored
-  const storedName = localStorage.getItem('imolarte_client_name');
-  const storedEmail = localStorage.getItem('imolarte_client_email');
-  const storedPhone = localStorage.getItem('imolarte_client_phone');
-  
-  if (storedName && document.getElementById('client-name')) {
-    document.getElementById('client-name').value = storedName;
-  }
-  if (storedEmail && document.getElementById('client-email')) {
-    document.getElementById('client-email').value = storedEmail;
-  }
-  if (storedPhone && document.getElementById('client-phone')) {
-    document.getElementById('client-phone').value = storedPhone;
-  }
+    
+    if (divider) {
+        divider.style.display = 'none';
+    }
+}
+
+function mostrarTodasLasOpciones() {
+    const todasLasOpciones = document.querySelectorAll('.payment-option');
+    const divider = document.querySelector('.payment-divider');
+    
+    todasLasOpciones.forEach(opcion => {
+        opcion.style.visibility = 'visible';
+        opcion.style.height = '';
+        opcion.style.overflow = '';
+        opcion.style.margin = '';
+        opcion.style.padding = '';
+    });
+    
+    if (divider) {
+        divider.style.display = 'flex';
+    }
+}
+
+// ===== EVENT LISTENERS =====
+
+document.addEventListener('DOMContentLoaded', function() {
+    const closeCheckoutBtn = document.getElementById('closeCheckout');
+    if (closeCheckoutBtn) {
+        closeCheckoutBtn.addEventListener('click', closeCheckoutModal);
+    }
+
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendToWhatsApp();
+        });
+    }
+
+    const deliveryOptions = document.querySelectorAll('.delivery-option');
+    deliveryOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const deliveryType = this.dataset.delivery;
+            const radio = this.querySelector('input[type="radio"]');
+            
+            if (radio) {
+                radio.checked = true;
+                
+                deliveryOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                const addressFields = document.getElementById('addressFields');
+                if (deliveryType === 'home') {
+                    addressFields.classList.add('active');
+                    addressFields.querySelectorAll('input, textarea').forEach(field => {
+                        if (field.id !== 'notes') {
+                            field.required = true;
+                        }
+                    });
+                    document.getElementById('summaryShipping').textContent = 'A calcular';
+                } else {
+                    addressFields.classList.remove('active');
+                    addressFields.querySelectorAll('input, textarea').forEach(field => {
+                        field.required = false;
+                    });
+                    document.getElementById('summaryShipping').textContent = '$0';
+                }
+                
+                updateCheckoutSummary();
+            }
+        });
+    });
+
+    const showTermsLink = document.getElementById('showTerms');
+    if (showTermsLink) {
+        showTermsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showTermsAndConditions();
+        });
+    }
+
+    const showCesionLink = document.getElementById('showCesion');
+    if (showCesionLink) {
+        showCesionLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showCesionModal();
+        });
+    }
+
+    initBirthdaySelectors();
+
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('error');
+        });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const checkoutModal = document.getElementById('checkoutModal');
+            if (checkoutModal && checkoutModal.classList.contains('active')) {
+                closeCheckoutModal();
+            }
+        }
+    });
+
+    console.log('✅ checkout.js inicializado');
 });
 
-// === EXPORTS (for testing/debugging) ===
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    generateOrderId,
-    showToast,
-    handleCheckoutSubmit
-  };
-}
+console.log('📦 checkout.js loaded v2.0 (with toast)');
