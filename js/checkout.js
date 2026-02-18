@@ -1,5 +1,6 @@
 // checkout.js - Gestión del checkout, validaciones, Wompi y WhatsApp
 // COMPLETO - Con toast en lugar de alerts
+// Versión: 2.1 - Added initBirthdaySelectors function
 
 // ===== CONSTANTES =====
 const WOMPI_PUBLIC_KEY = 'pub_test_rT7K8rzYnk2Ec8Lv25tRL3JIof6b6Lwp';
@@ -17,6 +18,44 @@ let checkoutData = {
     city: 'Bogotá',
     notes: ''
 };
+
+// ===== CUMPLEAÑOS - FUNCIÓN AGREGADA =====
+function initBirthdaySelectors() {
+    const daySelect = document.getElementById('birthdayDay');
+    const monthSelect = document.getElementById('birthdayMonth');
+    
+    if (!daySelect || !monthSelect) {
+        console.warn('Selectores de cumpleaños no encontrados');
+        return;
+    }
+    
+    // Clear existing options
+    daySelect.innerHTML = '<option value="">Día</option>';
+    monthSelect.innerHTML = '<option value="">Mes</option>';
+    
+    // Llenar días (1-31)
+    for (let i = 1; i <= 31; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        daySelect.appendChild(option);
+    }
+    
+    // Llenar meses
+    const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    months.forEach((month, index) => {
+        const option = document.createElement('option');
+        option.value = index + 1;
+        option.textContent = month;
+        monthSelect.appendChild(option);
+    });
+    
+    console.log('✅ Birthday selectors initialized');
+}
 
 // ===== FUNCIONES PRINCIPALES =====
 
@@ -343,6 +382,19 @@ function mostrarTodasLasOpciones() {
     }
 }
 
+// ===== FUNCIONES DE TERMINOS Y CESION (placeholder) =====
+function showTermsAndConditions() {
+    // Esta función debería estar definida en otro archivo
+    console.log('Mostrar términos y condiciones');
+    showInfo('Términos y condiciones - Implementar según necesidad');
+}
+
+function showCesionModal() {
+    // Esta función debería estar definida en otro archivo
+    console.log('Mostrar cesión de datos');
+    showInfo('Cesión de datos - Implementar según necesidad');
+}
+
 // ===== EVENT LISTENERS =====
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -409,6 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Inicializar selectores de cumpleaños (AHORA FUNCIONA)
     initBirthdaySelectors();
 
     document.querySelectorAll('.form-input').forEach(input => {
@@ -429,4 +482,4 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ checkout.js inicializado');
 });
 
-console.log('📦 checkout.js loaded v2.0 (with toast)');
+console.log('📦 checkout.js loaded v2.1 (with toast and birthday selectors)');

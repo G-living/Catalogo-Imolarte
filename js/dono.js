@@ -1,7 +1,7 @@
 /**
  * dono.js - Modo Dono: Compra de crédito para regalar
  * Genera códigos de 10 caracteres alfanuméricos con prefijo DNO-
- * Versión: 1.1 - Fixed cart item creation
+ * Versión: 1.2 - Fixed duplicate SHEETS_CONFIG
  */
 
 // ===== CONFIGURATION =====
@@ -13,7 +13,7 @@ const DONO_CONFIG = {
   maxPerOrder: 5
 };
 
-const SHEETS_CONFIG = {
+const DONO_SHEETS_CONFIG = {
   webAppUrl: 'https://script.google.com/macros/s/AKfycbw_qPay6DfCh-xxeosxmD-tuEINf9UIPT_i_0sNg5b6GbD-zZc93ZsaxjrAoqkn_m1u/exec'
 };
 
@@ -233,7 +233,7 @@ async function registerDonoPurchase(donoData, pedidoId) {
       pedidoId: pedidoId
     });
     
-    const response = await fetch(SHEETS_CONFIG.webAppUrl, {
+    const response = await fetch(DONO_SHEETS_CONFIG.webAppUrl, {
       method: 'POST',
       body: params
     });
@@ -263,4 +263,4 @@ window.closeDonoModal = closeDonoModal;
 window.generateDonoCode = generateDonoCode;
 window.registerDonoPurchase = registerDonoPurchase;
 
-console.log('✅ dono.js cargado v1.1');
+console.log('✅ dono.js cargado v1.2');

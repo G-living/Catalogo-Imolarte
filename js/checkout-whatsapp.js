@@ -1,6 +1,6 @@
 // checkout-whatsapp.js
 // IMOLARTE - WhatsApp Wishlist Integration
-// Version: 2.0 - Dono NOT applicable (only wishlist)
+// Version: 2.1 - Fixed duplicate SHEETS_CONFIG
 
 // ===== CONFIGURATION =====
 const WHATSAPP_CONFIG = {
@@ -8,7 +8,7 @@ const WHATSAPP_CONFIG = {
   businessName: 'IMOLARTE'
 };
 
-const SHEETS_CONFIG = {
+const WHATSAPP_SHEETS_CONFIG = {
   webAppUrl: 'https://script.google.com/macros/s/AKfycbw_qPay6DfCh-xxeosxmD-tuEINf9UIPT_i_0sNg5b6GbD-zZc93ZsaxjrAoqkn_m1u/exec'
 };
 
@@ -133,7 +133,7 @@ async function registerWishlistInSheets() {
     // Send to Sheets
     const params = new URLSearchParams(formData);
     
-    const response = await fetch(SHEETS_CONFIG.webAppUrl, {
+    const response = await fetch(WHATSAPP_SHEETS_CONFIG.webAppUrl, {
       method: 'POST',
       mode: 'cors',
       cache: 'no-cache',
@@ -404,4 +404,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.handleWhatsAppWishlist = handleWhatsAppWishlist;
 
-console.log('📦 checkout-whatsapp.js loaded v2.0 - Wishlist only');
+console.log('📦 checkout-whatsapp.js loaded v2.1 - Wishlist only');
