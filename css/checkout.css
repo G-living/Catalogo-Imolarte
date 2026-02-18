@@ -1,306 +1,12 @@
 /**
  * ================================================================
- * IMOLARTE - ESTILOS CHECKOUT V2
- * ================================================================
- * Estilos para el nuevo flujo de checkout con opciones separadas
+ * IMOLARTE - CHECKOUT STYLES (MINIMAL)
+ * Only styles not already in styles.css
+ * Version: 2.0 - Cleaned for Dono compatibility
  * ================================================================
  */
 
-/* ===== SELECTOR DE MÉTODO DE PAGO ===== */
-
-.payment-method-selector {
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-radius: 12px;
-}
-
-.payment-method-selector h3 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
-  font-size: 1.1rem;
-}
-
-.payment-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .payment-options {
-    grid-template-columns: 1fr;
-  }
-}
-
-.payment-option-card {
-  background: white;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  padding: 1.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: block;
-}
-
-.payment-option-card:hover {
-  border-color: #c9a961;
-  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.2);
-}
-
-.payment-option-card input[type="radio"] {
-  display: none;
-}
-
-.payment-option-card input[type="radio"]:checked + .option-content {
-  border-left: 4px solid #c9a961;
-  padding-left: 1rem;
-}
-
-.payment-option-card input[type="radio"]:checked ~ * {
-  color: #c9a961;
-}
-
-.option-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-left: 0;
-  border-left: 4px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.option-icon {
-  font-size: 2rem;
-}
-
-.option-text {
-  flex: 1;
-}
-
-.option-text strong {
-  display: block;
-  font-size: 1.1rem;
-  margin-bottom: 0.25rem;
-  color: #2c3e50;
-}
-
-.option-text small {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-}
-
-/* ===== RESUMEN DEL PEDIDO ===== */
-
-.order-summary {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin: 2rem 0;
-}
-
-.order-summary h3 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 0.95rem;
-}
-
-.summary-item:last-child {
-  border-bottom: none;
-}
-
-.summary-totals {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #ddd;
-}
-
-.summary-line {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  font-size: 1rem;
-}
-
-.summary-line.discount {
-  color: #27ae60;
-  font-weight: 600;
-}
-
-.summary-line.total {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #c9a961;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #ddd;
-}
-
-/* ===== OPCIONES DE PAGO EN LÍNEA ===== */
-
-.payment-options-section {
-  margin: 2rem 0;
-}
-
-.payment-options-section h3 {
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
-}
-
-.payment-choice {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .payment-choice {
-    grid-template-columns: 1fr;
-  }
-}
-
-.payment-card {
-  background: white;
-  border: 2px solid #ddd;
-  border-radius: 12px;
-  padding: 1.5rem;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.payment-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-.payment-card.highlight {
-  border-color: #c9a961;
-  background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
-}
-
-.badge-discount {
-  position: absolute;
-  top: -10px;
-  right: 20px;
-  background: #e74c3c;
-  color: white;
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-.payment-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.payment-icon {
-  font-size: 2rem;
-}
-
-.payment-header strong {
-  display: block;
-  font-size: 1.1rem;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
-
-.payment-header small {
-  color: #7f8c8d;
-  font-size: 0.85rem;
-}
-
-.payment-savings {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: #d4edda;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  color: #155724;
-  font-weight: 600;
-}
-
-.payment-amount {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #c9a961;
-  text-align: center;
-  margin: 1rem 0;
-}
-
-.btn-payment {
-  width: 100%;
-  padding: 1rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Lato', sans-serif;
-}
-
-.btn-anticipo {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
-}
-
-.btn-anticipo:hover {
-  background: linear-gradient(135deg, #2980b9, #21618c);
-  transform: scale(1.02);
-}
-
-.btn-full {
-  background: linear-gradient(135deg, #c9a961, #a88952);
-  color: white;
-}
-
-.btn-full:hover {
-  background: linear-gradient(135deg, #a88952, #8a6f43);
-  transform: scale(1.02);
-}
-
-/* ===== OPCIÓN WHATSAPP ===== */
-
-.whatsapp-section {
-  margin: 2rem 0;
-}
-
-.whatsapp-card {
-  background: linear-gradient(135deg, #e8f5e9, #ffffff);
-  border: 2px solid #4caf50;
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-}
-
-.whatsapp-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.whatsapp-text h4 {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.whatsapp-text p {
-  color: #7f8c8d;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-}
-
+/* ===== WHATSAPP BUTTON STYLES ===== */
 .btn-whatsapp {
   background: linear-gradient(135deg, #25d366, #1ebe57);
   color: white;
@@ -312,15 +18,19 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: 'Lato', sans-serif;
+  width: 100%;
 }
 
 .btn-whatsapp:hover {
   background: linear-gradient(135deg, #1ebe57, #128c42);
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
-/* ===== TIMER DEL CARRITO ===== */
+.btn-whatsapp:active {
+  transform: scale(0.98);
+}
 
+/* ===== CART TIMER ===== */
 #cart-timer {
   font-size: 0.85rem;
   color: #7f8c8d;
@@ -329,14 +39,21 @@
   padding: 0.5rem;
   background: #f8f9fa;
   border-radius: 6px;
+  font-family: 'Lato', sans-serif;
 }
 
-/* ===== ENTREGA ===== */
-
+/* ===== DELIVERY OPTIONS ===== */
 .delivery-options {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .delivery-options {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 }
 
 .delivery-option {
@@ -347,48 +64,307 @@
   cursor: pointer;
   text-align: center;
   transition: all 0.3s ease;
+  background: white;
 }
 
 .delivery-option:hover {
   border-color: #c9a961;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.15);
 }
 
 .delivery-option input[type="radio"] {
   display: none;
 }
 
-.delivery-option input[type="radio"]:checked + span {
-  color: #c9a961;
-  font-weight: bold;
-}
-
-.delivery-option input[type="radio"]:checked ~ * {
+.delivery-option.selected {
   border-color: #c9a961;
+  background: #f8f9fa;
+  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.2);
 }
 
-.delivery-fields {
-  margin-top: 1rem;
-  padding: 1rem;
+.delivery-option.selected .delivery-title {
+  color: #c9a961;
+  font-weight: 700;
+}
+
+.delivery-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.delivery-subtitle {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+/* ===== ADDRESS FIELDS CONTAINER ===== */
+.address-fields {
+  display: none;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
   background: #f8f9fa;
   border-radius: 8px;
+  border-left: 4px solid #c9a961;
 }
 
-/* ===== RESPONSIVE ===== */
+.address-fields.active {
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== WHATSAPP CARD ===== */
+.whatsapp-card {
+  background: linear-gradient(135deg, #e8f5e9, #ffffff);
+  border: 2px solid #4caf50;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin: 2rem 0;
+}
 
 @media (max-width: 768px) {
-  .payment-card {
+  .whatsapp-card {
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+}
+
+.whatsapp-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-icon {
+    font-size: 3rem;
+  }
+}
+
+.whatsapp-text h4 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+}
+
+.whatsapp-text p {
+  color: #7f8c8d;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* ===== GOOGLE PLACES SUGGESTIONS ===== */
+.suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: none;
+}
+
+.suggestion-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: #f8f9fa;
+  color: #c9a961;
+}
+
+/* ===== FORM GROUP POSITIONING ===== */
+.form-group.full-width {
+  position: relative;
+}
+
+/* ===== PAYMENT DIVIDER ===== */
+.payment-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #95a5a6;
+}
+
+.payment-divider::before,
+.payment-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.payment-divider span {
+  padding: 0 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ===== PAYMENT OPTIONS LAYOUT ===== */
+.checkout-actions-new {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.payment-option {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+  border-color: #c9a961;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.payment-option.payment-recommended {
+  border-color: #c9a961;
+  background: linear-gradient(135deg, #fffbf5, #ffffff);
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-badge {
+  position: absolute;
+  top: 12px;
+  right: -30px;
+  background: #e74c3c;
+  color: white;
+  padding: 0.3rem 2rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transform: rotate(45deg);
+  width: 120px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.payment-header {
+  margin-bottom: 1rem;
+}
+
+.payment-title {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+  font-family: 'Playfair Display', serif;
+}
+
+.payment-desc {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.payment-savings {
+  background: #d4edda;
+  color: #155724;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  border: 1px solid #c3e6cb;
+}
+
+.payment-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+  border-top: 1px dashed #ddd;
+  border-bottom: 1px dashed #ddd;
+}
+
+.amount-label {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.amount-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #c9a961;
+}
+
+.btn-payment {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Lato', sans-serif;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-payment:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-payment.btn-recommended {
+  background: linear-gradient(135deg, #c9a961, #a88952);
+}
+
+.btn-payment.btn-recommended:hover {
+  box-shadow: 0 4px 12px rgba(201, 169, 97, 0.3);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+  .payment-option {
     padding: 1rem;
   }
   
-  .payment-amount {
-    font-size: 1.5rem;
+  .payment-title {
+    font-size: 1.1rem;
   }
   
-  .whatsapp-card {
-    padding: 1.5rem;
+  .amount-value {
+    font-size: 1.3rem;
   }
   
-  .whatsapp-icon {
-    font-size: 3rem;
+  .payment-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 1.5rem;
+    top: 10px;
+    right: -35px;
+    width: 100px;
   }
 }

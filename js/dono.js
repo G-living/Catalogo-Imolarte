@@ -1,7 +1,7 @@
 /**
  * dono.js - Modo Dono: Compra de crédito para regalar
  * Genera códigos de 10 caracteres alfanuméricos con prefijo DNO-
- * Versión: 1.0
+ * Versión: 1.1 - Fixed cart item creation
  */
 
 // ===== CONFIGURATION =====
@@ -179,7 +179,7 @@ async function handleAddDonoToCart() {
   // Generate Dono code
   const donoCode = generateDonoCode();
   
-  // Create Dono item for cart
+  // Create complete Dono item first (FIXED)
   const donoItem = {
     productName: '🎁 Crédito Dono',
     description: `Crédito para ${recipientName}`,
@@ -195,25 +195,21 @@ async function handleAddDonoToCart() {
     donoCode: donoCode
   };
   
-  // Add to cart
+  // Add to cart using the existing function
   if (typeof window.addToCart === 'function') {
+    // Call addToCart with basic params
     window.addToCart(
-      '🎁 Crédito Dono',
-      'DONO',
-      donoCode,
-      selectedDonoAmount,
-      1
+      donoItem.productName,
+      donoItem.collection,
+      donoItem.code,
+      donoItem.price,
+      donoItem.quantity
     );
     
-    // Store additional Dono data in the cart item
-    const cartItem = window.cart.find(item => item.code === donoCode);
-    if (cartItem) {
-      cartItem.isDono = true;
-      cartItem.recipientName = recipientName;
-      cartItem.recipientEmail = recipientEmail;
-      cartItem.recipientPhone = recipientPhone;
-      cartItem.message = message;
-      cartItem.donoCode = donoCode;
+    // Find the newly added item and enhance it with Dono data
+    const addedItem = window.cart.find(item => item.code === donoCode);
+    if (addedItem) {
+      Object.assign(addedItem, donoItem);
     }
     
     showToast(`✅ Dono agregado: ${formatPrice(selectedDonoAmount)}`, 'success');
@@ -267,4 +263,4 @@ window.closeDonoModal = closeDonoModal;
 window.generateDonoCode = generateDonoCode;
 window.registerDonoPurchase = registerDonoPurchase;
 
-console.log('✅ dono.js cargado');
+console.log('✅ dono.js cargado v1.1');
