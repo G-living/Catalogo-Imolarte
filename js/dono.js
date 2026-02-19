@@ -1,11 +1,11 @@
 // js/dono.js – Complete Dono (Gift Credit) flow
 
 import { CONFIG } from './config.js';
-import { showToast, createModal } from './ui.js';
+import { showToast, createModal, formatPrice } from './ui.js'; // ← import formatPrice
 import { addToCart } from './cart.js';
 
 /**
- * Open Dono modal – amount selection, recipient, generate code, log to DONOS
+ * Open Dono modal
  */
 export function openDonoModal() {
   const modal = createModal('Regala Crédito Exclusivo', `
@@ -34,7 +34,6 @@ export function openDonoModal() {
     ">Agregar al Carrito y Generar Código</button>
   `);
 
-  // Preset buttons behavior
   modal.querySelectorAll('.dono-preset').forEach(btn => {
     btn.onclick = () => {
       document.getElementById('dono-custom-amount').value = btn.dataset.amount;
@@ -43,11 +42,10 @@ export function openDonoModal() {
     };
   });
 
-  // Add to cart button
   modal.querySelector('#add-dono-to-cart').onclick = () => addDonoToCart(modal);
 }
 
-// === ADD DONO TO CART & GENERATE CODE ===
+// === ADD DONO TO CART & LOG ===
 async function addDonoToCart(modal) {
   const amountInput = document.getElementById('dono-custom-amount');
   const amount = Number(amountInput.value);
@@ -63,7 +61,7 @@ async function addDonoToCart(modal) {
     return;
   }
 
-  // Generate unique code
+  // Generate code
   const codeChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let donoCode = CONFIG.DONO.CODE_PREFIX;
   for (let i = 0; i < CONFIG.DONO.CODE_LENGTH; i++) {
@@ -75,7 +73,7 @@ async function addDonoToCart(modal) {
   const expirationDate = new Date(purchaseDate);
   expirationDate.setDate(expirationDate.getDate() + CONFIG.DONO.EXPIRATION_DAYS);
 
-  // Add to cart as special item
+  // Add to cart
   addToCart({
     description: `Crédito Dono - ${formatPrice(amount)}`,
     collection: 'Dono Exclusivo',
@@ -84,7 +82,7 @@ async function addDonoToCart(modal) {
     quantity: 1
   });
 
-  // Log to DONOS sheet
+  // Log to DONOS
   try {
     const response = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
@@ -95,7 +93,7 @@ async function addDonoToCart(modal) {
         purchaseDate: purchaseDate.toISOString(),
         expirationDate: expirationDate.toISOString(),
         issuedAmount: amount,
-        issuerClientId: 'GUEST_' + Date.now(), // Later: real client ID
+        issuerClientId: 'GUEST_' + Date.now(),
         recipientName,
         recipientEmail: document.getElementById('dono-recipient-email').value.trim(),
         recipientPhone: document.getElementById('dono-recipient-phone').value.trim(),
@@ -130,9 +128,4 @@ async function addDonoToCart(modal) {
   window.open(`https://wa.me/${CONFIG.WHATSAPP.BUSINESS_NUMBER}?text=${msg}`, '_blank');
 
   modal.remove();
-}
-
-// === UTILS ===
-function formatPrice(num) {
-  return '$' + Number(num).toLocaleString(CONFIG.PRICE_LOCALE);
 }

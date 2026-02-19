@@ -1,12 +1,18 @@
-// js/ui.js – Shared UI helpers (toasts, loading, modals)
-// Used across all modules
+// js/ui.js – Shared UI helpers (toasts, loading, modals, formatPrice)
 
 import { CONFIG } from './config.js';
 
 /**
- * Show a nice toast notification
- * @param {string} message - Text to show
- * @param {string} type - 'success' | 'error' | 'warning' | 'info'
+ * Format price in COP
+ * @param {number} num
+ * @returns {string} e.g. $1.234.567
+ */
+export function formatPrice(num) {
+  return '$' + Number(num).toLocaleString(CONFIG.PRICE_LOCALE);
+}
+
+/**
+ * Show toast notification
  */
 export function showToast(message, type = 'info') {
   const bg = {
@@ -18,7 +24,7 @@ export function showToast(message, type = 'info') {
 
   Toastify({
     text: message,
-    duration: CONFIG.TOAST_DURATION,
+    duration: CONFIG.TOAST_DURATION || 5000,
     gravity: "top",
     position: "center",
     backgroundColor: bg,
@@ -27,9 +33,7 @@ export function showToast(message, type = 'info') {
 }
 
 /**
- * Show loading state on button
- * @param {HTMLElement} btn - Button element
- * @param {string} text - Optional loading text (default "Procesando...")
+ * Show loading on button
  */
 export function showLoading(btn, text = 'Procesando...') {
   if (!btn) return;
@@ -39,8 +43,7 @@ export function showLoading(btn, text = 'Procesando...') {
 }
 
 /**
- * Restore button after loading
- * @param {HTMLElement} btn - Button element
+ * Hide loading on button
  */
 export function hideLoading(btn) {
   if (!btn || !btn.dataset.originalText) return;
@@ -50,11 +53,7 @@ export function hideLoading(btn) {
 }
 
 /**
- * Create a centered modal dialog
- * @param {string} title - Modal title
- * @param {string} contentHTML - Inner HTML content
- * @param {function} onClose - Optional callback when closed
- * @returns {HTMLElement} The modal element
+ * Create centered modal
  */
 export function createModal(title, contentHTML, onClose = () => {}) {
   const modal = document.createElement('div');
@@ -83,7 +82,6 @@ export function createModal(title, contentHTML, onClose = () => {}) {
     onClose();
   };
 
-  // Close on outside click
   modal.onclick = (e) => {
     if (e.target === modal) {
       modal.remove();

@@ -1,17 +1,17 @@
 // js/catalog.js – Product rendering + Dono button injection
 
 import { addToCart } from './cart.js';
-import { showToast } from './ui.js';
+import { showToast, formatPrice } from './ui.js'; // ← import formatPrice here
 import { CONFIG } from './config.js';
 
-// Dummy product data (replace with your real data later, e.g. from JSON or Sheet)
+// Dummy products (replace with your real data)
 const PRODUCTS = [
   { id: '001', description: 'Vaso Cerámico Clásico', collection: 'Classica', code: 'VCL-001', price: 150000, image: 'https://via.placeholder.com/300x300?text=Vaso+Classico' },
   { id: '002', description: 'Plato Decorativo Moderno', collection: 'Moderna', code: 'PDM-002', price: 280000, image: 'https://via.placeholder.com/300x300?text=Plato+Moderno' },
-  // Add your real 100 products here...
+  // Add your 100 products here...
 ];
 
-// === RENDER PRODUCTS ===
+// Render catalogue
 export function renderProducts() {
   const grid = document.getElementById('products-grid');
   if (!grid) return;
@@ -36,7 +36,7 @@ export function renderProducts() {
   console.log(`Rendered ${PRODUCTS.length} products`);
 }
 
-// === INJECT DONO BUTTON ===
+// Inject Dono button
 export function injectDonoButton() {
   const header = document.querySelector('header') || document.body;
   const firstRow = document.querySelector('.catalog-grid') || document.querySelector('.products-grid');
@@ -71,9 +71,4 @@ export function injectDonoButton() {
   }
 
   console.log('🎁 Dono Mode button injected');
-}
-
-// === UTILS ===
-function formatPrice(num) {
-  return '$' + Number(num).toLocaleString(CONFIG.PRICE_LOCALE);
 }
