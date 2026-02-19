@@ -1,9 +1,9 @@
 /**
  * dono-checkout.js - Validación y aplicación de códigos Dono en checkout
- * Versión: 1.5 - CORREGIDO DEFINITIVAMENTE
+ * Versión: 1.6 - CORREGIDO: Eliminada duplicación de constantes
  */
 
-// ===== CONFIGURATION =====
+// ===== CONFIGURATION - SOLO UNA VEZ =====
 const DONO_CHECKOUT_SHEETS_CONFIG = {
   webAppUrl: 'https://script.google.com/macros/s/AKfycbw_qPay6DfCh-xxeosxmD-tuEINf9UIPT_i_0sNg5b6GbD-zZc93ZsaxjrAoqkn_m1u/exec'
 };
@@ -47,13 +47,11 @@ function initDonoCheckout() {
   console.log('✅ Validación Dono inicializada');
 }
 
-// ===== FUNCIÓN CORREGIDA - USA WINDOW.GETCARDTOTAL =====
+// ===== FUNCIÓN CORREGIDA =====
 function getCartTotalFromCart() {
-  // Esta función llama a la función de cart.js, NO a sí misma
   if (typeof window.getCartTotal === 'function') {
     return window.getCartTotal();
   }
-  console.warn('window.getCartTotal no está disponible');
   return 0;
 }
 
@@ -219,4 +217,4 @@ window.clearDono = () => {
   restoreOriginalTotals();
 };
 
-console.log('✅ dono-checkout.js cargado v1.5');
+console.log('✅ dono-checkout.js cargado v1.6');
