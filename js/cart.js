@@ -1,12 +1,8 @@
-// js/cart.js – Cart state & UI logic (cleaned – single export block)
-
 import { showToast, formatPrice } from './ui.js';
 import { CONFIG } from './config.js';
 
-// State
 let cart = JSON.parse(localStorage.getItem('imolarte_cart')) || [];
 
-// Helpers
 function saveCart() {
   localStorage.setItem('imolarte_cart', JSON.stringify(cart));
 }
@@ -15,8 +11,7 @@ function getCartTotal() {
   return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 }
 
-// Core functions
-export function addToCart(product) {
+function addToCart(product) {
   const { description, collection, code, price, quantity = 1 } = product;
 
   const existing = cart.find(item => item.code === code && item.collection === collection);
@@ -31,7 +26,7 @@ export function addToCart(product) {
   showToast(`Agregado: ${description} × ${quantity}`, 'success');
 }
 
-export function removeCartItem(code, collection) {
+function removeCartItem(code, collection) {
   const item = cart.find(i => i.code === code && i.collection === collection);
   if (!item) return;
 
@@ -43,7 +38,7 @@ export function removeCartItem(code, collection) {
   }
 }
 
-export function updateCartItemQuantity(code, collection, newQuantity) {
+function updateCartItemQuantity(code, collection, newQuantity) {
   const item = cart.find(i => i.code === code && i.collection === collection);
   if (item) {
     if (newQuantity <= 0) {
@@ -56,15 +51,14 @@ export function updateCartItemQuantity(code, collection, newQuantity) {
   }
 }
 
-export function clearCart() {
+function clearCart() {
   cart = [];
   saveCart();
   updateCartUI();
   showToast('Carrito vaciado', 'info');
 }
 
-// UI update
-export function updateCartUI() {
+function updateCartUI() {
   const cartCount = document.getElementById('cart-count');
   const cartTotalEl = document.getElementById('cart-total');
   const cartItemsEl = document.getElementById('cart-items');
@@ -94,13 +88,10 @@ export function updateCartUI() {
   }
 }
 
-// Init (lazy – only if cart page exists)
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('cartPage')) {
-    updateCartUI();
-    console.log('Cart initialized – items:', cart.length);
-  }
-});
+// Lazy init – called only when needed
+export function initCart() {
+  updateCartUI();
+  console.log('Cart initialized – items:', cart.length);
+}
 
-// Single export block (no duplicates)
 export { cart, addToCart, removeCartItem, updateCartItemQuantity, getCartTotal, clearCart, updateCartUI };

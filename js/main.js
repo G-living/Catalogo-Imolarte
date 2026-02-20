@@ -1,34 +1,33 @@
-// js/main.js – Entry point – imports & initializes everything
-
 import { CONFIG } from './config.js';
 import { showToast } from './ui.js';
 import { addToCart, updateCartUI } from './cart.js';
-import { renderProducts, injectDonoButton } from './catalog.js';
-import { openDonoModal } from './dono.js';
-import { initCheckout } from './checkout.js';
 
-// Global access if needed
-window.addToCart = addToCart;
-window.showToast = showToast;
-window.openDonoModal = openDonoModal;
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('IMOLARTE – Main initialized');
 
-// === INITIALIZATION ===
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('IMOLARTE – Main v1.0 initialized');
-
-  // Catalogue init
+  // Catalogue (always present)
   if (document.getElementById('products-grid')) {
+    const { renderProducts, injectDonoButton } = await import('./catalog.js');
     renderProducts();
     injectDonoButton();
   }
 
-  // Cart init
+  // Cart (lazy)
   if (document.getElementById('cartButton') || document.getElementById('cartPage')) {
+    const { updateCartUI } = await import('./cart.js');
     updateCartUI();
   }
 
-  // Checkout init
+  // Dono (lazy)
+  const donoBtn = document.getElementById('dono-mode-btn');
+  if (donoBtn) {
+    const { initDono } = await import('./dono.js');
+    initDono();
+  }
+
+  // Checkout (lazy)
   if (document.getElementById('checkoutSection')) {
+    const { initCheckout } = await import('./checkout.js');
     initCheckout();
   }
 });

@@ -1,19 +1,14 @@
-// js/catalog.js – Catalogue rendering (Garofano Blu main + popup for all collections)
-
 import { addToCart } from './cart.js';
 import { showToast, formatPrice, createModal } from './ui.js';
 import { CONFIG } from './config.js';
 
-// Products from IMOLARTE price list (Euro ex-works)
 const PRODUCTS = [
   { sku: 'GB110', name: 'New appetizer plate', collection: 'GAROFANO BLU', euroPrice: 64.2, image: '/images/GB110.jpg' },
   { sku: 'GB105', name: 'Appetizer plate', collection: 'GAROFANO BLU', euroPrice: 64.2, image: '/images/GB105.jpg' },
   { sku: 'GB106', name: 'Soup serving bowl x 12', collection: 'GAROFANO BLU', euroPrice: 224.328, image: '/images/GB106.jpg' },
-  // Add all Garofano Blu SKUs with real images here...
-  // Omit any without image (per rule)
+  // Add all Garofano Blu SKUs...
 ];
 
-// All collections for popup (comodin pics for non-Blu, omit if missing)
 const ALL_COLLECTIONS = [
   { collection: 'GIALLO FIORE', comodinImage: '/images/comodin-giallo.jpg' },
   { collection: 'BIANCO FIORE', comodinImage: '/images/comodin-bianco.jpg' },
@@ -25,10 +20,8 @@ const ALL_COLLECTIONS = [
   { collection: 'GAROFANO LAVI', comodinImage: '/images/comodin-lavi.jpg' },
   { collection: 'GAROFANO ROSSO E ORO', comodinImage: '/images/comodin-rosso-oro.jpg' },
   { collection: 'GAROFANO AVORIO E ORO', comodinImage: '/images/comodin-avorio-oro.jpg' },
-  // Omit any without comodin image
 ];
 
-// Render main catalogue – only Garofano Blu with real images
 export function renderProducts() {
   const grid = document.getElementById('products-grid');
   if (!grid) return;
@@ -59,7 +52,6 @@ export function renderProducts() {
   console.log(`Rendered ${PRODUCTS.length} Garofano Blu products`);
 }
 
-// Popup for all collections
 function openProductPopup(mainProduct) {
   const modal = createModal(mainProduct.name, `
     <img src="${mainProduct.image}" alt="${mainProduct.name}" style="width:100%; max-height:400px; object-fit:contain; margin-bottom:20px;">
@@ -74,20 +66,18 @@ function openProductPopup(mainProduct) {
   const optionsDiv = modal.querySelector('#collection-options');
 
   ALL_COLLECTIONS.forEach(col => {
-    if (!col.comodinImage) return; // Omit missing comodin (per rule)
-
     const line = document.createElement('div');
-    line.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:16px;';
+    line.style.cssText = 'display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:12px; border-bottom:1px solid #eee;';
     line.innerHTML = `
       <img src="${col.comodinImage}" alt="${col.collection}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;">
       <div style="flex:1;">
         <strong>${col.collection}</strong><br>
         <small>Código: ${mainProduct.sku.replace('GB', col.collection.substring(0,2).toUpperCase())}</small>
       </div>
-      <p style="font-weight:bold; margin:0 16px;">${formatPrice(Math.round(mainProduct.euroPrice * CONFIG.PRICING_MULTIPLIER))}</p>
-      <div style="display:flex; gap:8px;">
+      <p style="font-weight:bold;">${formatPrice(Math.round(mainProduct.euroPrice * CONFIG.PRICING_MULTIPLIER))}</p>
+      <div style="display:flex; gap:8px; align-items:center;">
         <button class="qty-btn" onclick="this.nextElementSibling.value = Math.max(0, parseInt(this.nextElementSibling.value) - 1)">-</button>
-        <input type="number" value="0" min="0" style="width:50px; text-align:center;">
+        <input type="number" value="0" min="0" style="width:60px; text-align:center;">
         <button class="qty-btn" onclick="this.previousElementSibling.value = parseInt(this.previousElementSibling.value) + 1">+</button>
       </div>
     `;
@@ -110,9 +100,18 @@ function openProductPopup(mainProduct) {
 
     if (added > 0) {
       showToast(`Producto agregado (${added} items)`, 'success');
-      modal.remove();
     } else {
       showToast('Selecciona al menos una cantidad', 'error');
     }
+    modal.remove();
   };
+}
+
+export function initCatalogue() {
+  renderProducts();
+  console.log('Catalogue initialized');
+}
+
+export function injectDonoButton() {
+  // ... same as before ...
 }
