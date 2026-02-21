@@ -1,6 +1,10 @@
 // scripts/convert-excel-to-csv.js
 // IMOLARTE - Convertir Excel matricial → CSV vertical unificado
-// Estructura Excel: Headers en filas 3-4, datos desde fila 5
+// Estructura Excel:
+//   Fila 1: Título general
+//   Fila 2: Nombres de colecciones (GIALLO FIORE, BIANCO FIORE, etc.)
+//   Fila 3: Sub-headers "code" y "price" repetidos
+//   Fila 4+: Datos de productos
 
 const XLSX = require('xlsx');
 const fs = require('fs');
@@ -41,6 +45,7 @@ function convertExcelToCSV() {
   // Verificar archivo
   if (!fs.existsSync(INPUT_FILE)) {
     console.error(`❌ Archivo no encontrado: ${INPUT_FILE}`);
+    console.log('💡 Asegúrate de que el Excel está en: /listino/');
     process.exit(1);
   }
   
@@ -49,7 +54,7 @@ function convertExcelToCSV() {
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   
-  // Convertir a array de arrays
+  // Convertir a array de arrays (preservando estructura exacta)
   const rawData = XLSX.utils.sheet_to_json(worksheet, { 
     header: 1,
     defval: ''
@@ -57,15 +62,24 @@ function convertExcelToCSV() {
   
   console.log(`📊 ${rawData.length} filas leídas del Excel`);
   
-  // Identificar estructura de columnas por colección
+  // Identificar columnas de colecciones (FILA 2 - índice 1)
   const collectionColumns = identifyCollectionColumns(rawData);
-  console.log(`📦 ${Object.keys(collectionColumns).length} colecciones detectadas`);
   
   if (Object.keys(collectionColumns).length === 0) {
-    console.error('❌ No se detectaron colecciones. Verificar estructura del Excel.');
-    console.log('💡 Los headers deben estar en filas 3-4 con prefijos: GF, BF, MZ, GB, etc.');
+    console.error('❌ No se detectaron colecciones en el Excel');
+    console.log('💡 Verificar que la FILA 2 tenga los nombres: GIALLO FIORE, BIANCO FIORE, etc.');
+    console.log('\n📋 Primeras 3 filas del Excel:');
+    for (let i = 0; i < Math.min(3, rawData.length); i++) {
+      console.log(`Fila ${i + 1}:`, rawData[i].slice(0, 10).join(' | '));
+    }
     process.exit(1);
   }
+  
+  console.log(`📦 ${Object.keys(collectionColumns).length} colecciones detectadas:`);
+  Object.keys(collectionColumns).forEach(prefix => {
+    const col = collectionColumns[prefix];
+    console.log(`   ${prefix} (${COLLECTION_MAP[prefix]?.name || 'Unknown'}) - Columna ${col}`);
+  });
   
   // Procesar datos → formato vertical
   const csvRows = [];
@@ -73,23 +87,32 @@ function convertExcelToCSV() {
   // Header CSV
   csvRows.push('Descripcion;Colección;Prefijo_Coleccion;Codigo_Producto;SKU;Foto_Comodin_Coleccion;Foto_Real_Codigo_Producto;Precio_EUR;Precio_COP;Multiplicador');
   
-  // Procesar cada fila de datos (empezar desde fila 5 - índice 4)
+  // Procesar cada fila de datos (empezar desde fila 4 - índice 3)
   let productsCount = 0;
   let lastDescription = '';
   
-  for (let rowIdx = 4; rowIdx < rawData.length; rowIdx++) {
+  for (let rowIdx = 3; rowIdx < rawData.length; rowIdx++) {
     const row = rawData[rowIdx];
+    
+    // Primera columna: descripción del producto
     const description = String(row[0] || '').trim();
     
-    // Saltar filas vacías o headers
-    if (!description || description.includes('DESCRIPTION') || description.includes('code')) continue;
+    // Saltar filas vacías o que no son productos
+    if (!description || 
+        description.includes('IMOLARTE') || 
+        description.includes('DESCRIPTION') ||
+        description.includes('code') ||
+        description.includes('€')) {
+      continue;
+    }
     
     // Para cada colección, extraer código y precio
     for (const [prefix, colIndex] of Object.entries(collectionColumns)) {
       const code = String(row[colIndex] || '').trim();
-      const priceEUR = parseFloat(row[colIndex + 1]) || 0;
+      const priceEUR = parseFloat(row[colIndex + 1]);
       
-      if (!code || priceEUR === 0) continue;
+      // Solo procesar si hay código válido y precio
+      if (!code || isNaN(priceEUR) || priceEUR === 0) continue;
       
       // Extraer número de producto (quitar prefijo)
       const productNumber = code.replace(prefix, '');
@@ -140,33 +163,39 @@ function convertExcelToCSV() {
   // Escribir CSV
   fs.writeFileSync(OUTPUT_FILE, csvRows.join('\n'), 'utf-8');
   
-  console.log(`✅ CSV generado: ${OUTPUT_FILE}`);
+  console.log(`\n✅ CSV generado: ${OUTPUT_FILE}`);
   console.log(`📦 ${productsCount} productos exportados`);
-  console.log(`💡 Ejemplo de primeras líneas:`);
+  console.log(`\n💡 Ejemplo de primeras líneas:`);
   csvRows.slice(0, 4).forEach(line => console.log(`   ${line}`));
-  console.log('💡 Ahora ejecuta: npm run convert && npm run dev para testear');
+  console.log('\n💡 Ahora ejecuta: node test-catalog.js para verificar');
+  console.log('💡 Luego: npm run dev para testear el frontend');
 }
 
 /**
  * Identifica las columnas de código/precio para cada colección
- * Busca en filas 2-3 los prefijos de colección
+ * Busca en la FILA 2 (índice 1) los nombres de colecciones
  * Retorna: { 'GF': 1, 'BF': 3, 'MZ': 5, 'GB': 7, ... }
  */
 function identifyCollectionColumns(data) {
   const collectionColumns = {};
   
-  // Buscar en filas 2-3 los headers de colecciones
-  for (let rowIdx = 2; rowIdx < Math.min(5, data.length); rowIdx++) {
-    const row = data[rowIdx];
+  // Buscar en FILA 2 (índice 1) los headers de colecciones
+  const headerRow = data[1] || [];
+  
+  console.log('\n🔍 Buscando colecciones en fila 2 (índice 1)...');
+  console.log('Contenido de fila 2:', headerRow.slice(0, 15).join(' | '));
+  
+  for (let colIdx = 0; colIdx < headerRow.length; colIdx++) {
+    const cell = String(headerRow[colIdx] || '').trim();
     
-    for (let colIdx = 1; colIdx < row.length; colIdx++) {
-      const cell = String(row[colIdx] || '').trim();
-      
-      // Verificar si es un prefijo de colección conocido
-      if (COLLECTION_MAP[cell]) {
+    // Verificar si es un nombre de colección conocido
+    for (const [prefix, collection] of Object.entries(COLLECTION_MAP)) {
+      if (cell === collection.name || cell.includes(collection.name)) {
         // La columna del código está en colIdx
         // La columna del precio está en colIdx + 1
-        collectionColumns[cell] = colIdx;
+        collectionColumns[prefix] = colIdx;
+        console.log(`✅ Encontrado: ${collection.name} (${prefix}) en columna ${colIdx}`);
+        break;
       }
     }
   }
