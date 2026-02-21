@@ -1,0 +1,16 @@
+{
+  "name": "imolarte-catalogo",
+  "version": "1.0.0",
+  "description": "IMOLARTE Catálogo de Cerámicas Italianas",
+  "scripts": {
+    "convert": "node scripts/convert-excel-to-csv.js",
+    "dev": "npx http-server -p 3000",
+    "build": "echo 'Static site - no build required'"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
